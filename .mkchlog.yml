@@ -1,0 +1,16 @@
+# Possibly general settings here, probably none in the initial version
+
+sections:
+    # section identifier selected by project maintainer
+    security:
+        # The header presented to the user
+        title: Security
+        # desctiption is optional and will appear above changes
+        description: This section contains very important security-related changes.
+        subsections:
+            vuln_fixes:
+                title: Fixed vulnerabilities
+    features:
+        title: New features
+    perf:
+        title: Performance improvements
