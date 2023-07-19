@@ -19,7 +19,7 @@ struct Section {
 
 impl Changelog {
     pub fn new(template: Template, git: Git) -> Changelog {
-        Changelog { template, git }
+        Self { template, git }
     }
 
     pub fn produce(&self) -> Result<String, Box<dyn Error>> {
@@ -153,7 +153,11 @@ impl Changelog {
             ///////////////////
 
             if !changelog_map.contains_key(section) {
-                return Err(format!("Unknown section '{}'", section).into());
+                return Err(format!(
+                    "Unknown section '{}' in changelog messsage:\n>>> {}",
+                    section, commit.raw_data
+                )
+                .into());
             }
 
             if inherit == "all" {

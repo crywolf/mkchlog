@@ -1,7 +1,6 @@
 use commit::Commit;
 use regex::Regex;
 use std::error::Error;
-use std::io::{self, Write};
 
 pub struct Git {
     path: String,
@@ -12,20 +11,30 @@ impl Git {
         Self { path }
     }
 
-    fn get_commits(&self) -> Result<String, Box<dyn Error>> {
+    fn get_log(&self) -> Result<String, Box<dyn Error>> {
         let mut git_command = std::process::Command::new("git");
         git_command.arg("-C").arg(&self.path).arg("log");
 
-        let git_cmd_output = git_command.output()?;
+        let git_cmd_output = git_command.output().map_err(|err| {
+            format!(
+                "Failed to execute '{}' command: {}",
+                git_command.get_program().to_str().unwrap_or("git"),
+                err
+            )
+        })?;
 
         if !git_cmd_output.status.success() {
-            io::stderr().write_all(&git_cmd_output.stderr)?;
-
             let args: Vec<_> = git_command
                 .get_args()
-                .map(|a| a.to_str().unwrap())
+                .map(|a| a.to_str().unwrap_or("git log"))
                 .collect();
-            return Err(format!("Failed to execute 'git {}' command", args.join(" ")).into());
+
+            return Err(format!(
+                "Failed to execute 'git {}' command:\n{}",
+                args.join(" "),
+                String::from_utf8_lossy(&git_cmd_output.stderr).into_owned()
+            )
+            .into());
         }
 
         let git_log = String::from_utf8_lossy(&git_cmd_output.stdout);
@@ -34,23 +43,21 @@ impl Git {
     }
 
     pub fn commits(&self) -> Result<Vec<Commit>, Box<dyn Error>> {
-        let git_log = self.get_commits()?;
+        let git_log = self.get_log()?;
 
         let commit_regex = Regex::new(r"(?m)^commit [a-z|\d]{40}$").unwrap();
 
-        let mut captures_iterator = commit_regex.captures_iter(git_log.as_str());
+        let mut matches = commit_regex.find_iter(&git_log); // matches all lines with commit numbers
 
-        let commits: Result<Vec<_>, _> = commit_regex
-            .split(git_log.as_str())
-            .skip(1)
+        let commits: Result<Vec<Commit>, _> = commit_regex
+            .split(&git_log) // split by lines with commit numbers-
+            .skip(1) // first element is empty
             .map(|s| {
-                let m = captures_iterator
-                    .next()
-                    .unwrap()
-                    .get(0)
-                    .map_or("", |m| m.as_str());
+                let m = matches
+                    .next() // get lone with commit number and prepend it to the raw commit data
+                    .ok_or("Could not parse git log output (commit number)")?;
 
-                let mut r = m.to_owned();
+                let mut r = m.as_str().to_owned();
                 r.push_str(s);
 
                 Commit::new(&r)
@@ -82,9 +89,15 @@ mod commit {
 
             let (header, commit_message) = commit_iter
                 .next()
-                .ok_or("Could not parse commit message")?
+                .ok_or(format!(
+                    "Could not parse commit message in commit:\n>>> {}",
+                    raw_data
+                ))?
                 .split_once("\n\n")
-                .ok_or("Could not extract commit message text")?;
+                .ok_or(format!(
+                    "Could not extract commit message text in commit:\n>>> {}",
+                    raw_data
+                ))?;
 
             let changelog: String = commit_iter.map(|s| s.trim()).collect();
             if changelog.is_empty() {
