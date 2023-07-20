@@ -54,7 +54,7 @@ impl Git {
             .skip(1) // first element is empty
             .map(|s| {
                 let m = matches
-                    .next() // get lone with commit number and prepend it to the raw commit data
+                    .next() // get line with commit number and prepend it to the raw commit data
                     .ok_or("Could not parse git log output (commit number)")?;
 
                 let mut r = m.as_str().to_owned();

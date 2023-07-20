@@ -168,6 +168,8 @@ impl Changelog {
                     .next()
                     .map(|s| s.trim())
                     .ok_or("Could not extract 'title' from commit message text")?;
+
+                // TODO - remove hard wrapping (linefeeds) in the description?
                 description = commit_message_iter
                     .next()
                     .map(|s| s.trim())
