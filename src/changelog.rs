@@ -10,15 +10,8 @@ pub struct Changelog {
     git: Git,
 }
 
-struct Section {
-    title: String,
-    description: String,
-    subsections: IndexMap<String, Section>,
-    changes: String,
-}
-
 impl Changelog {
-    pub fn new(template: Template, git: Git) -> Changelog {
+    pub fn new(template: Template, git: Git) -> Self {
         Self { template, git }
     }
 
@@ -33,9 +26,9 @@ impl Changelog {
             .as_mapping()
             .ok_or("Malformed 'sections' key in config file")?;
 
+        // prepare changelog structure from template YAML data
         let mut changelog_map = IndexMap::<String, Section>::new();
 
-        // prepare changelog structure from template YAML data
         for (sec, val) in tmpl_sections {
             let sec = sec.as_str().ok_or("Invalid section")?.to_owned();
             let val = val
@@ -124,26 +117,27 @@ impl Changelog {
         for commit in commits {
             let mut changes = String::new();
 
-            let changelog_lines = changelog_lines(&commit.changelog_message);
+            let commit_changelog_data = CommitChangelogData::new(&commit.changelog_message);
 
+            let changelog_lines = commit_changelog_data.changelog_lines();
             if changelog_lines.len() == 1 && changelog_lines[0] == "skip" {
                 continue;
             }
 
-            let section = self.get_key(&changelog_lines, "section:").ok_or(format!(
+            let section = commit_changelog_data.get_key("section").ok_or(format!(
                 "Missing 'section' key in changelog message:\n>>> {}",
                 commit.raw_data
             ))?;
 
-            let mut title = self.get_key(&changelog_lines, "title:").unwrap_or("");
+            let mut title = commit_changelog_data.get_key("title").unwrap_or("");
 
-            let mut description = self.get_key(&changelog_lines, "description:").unwrap_or("");
+            let mut description = commit_changelog_data.get_key("description").unwrap_or("");
 
-            let title_is_enough = self
-                .get_key(&changelog_lines, "title-is-enough:")
+            let title_is_enough = commit_changelog_data
+                .get_key("title-is-enough")
                 .unwrap_or("");
 
-            let inherit = self.get_key(&changelog_lines, "inherit:").unwrap_or("");
+            let inherit = commit_changelog_data.get_key("inherit").unwrap_or("");
 
             let (section, sub_section) = section
                 .split_once(':')
@@ -249,45 +243,65 @@ impl Changelog {
 
         Ok(buff)
     }
+}
 
-    // TODO - refactor as a method of Commit struct
-    fn get_key<'a>(&'a self, from: &'a [String], key: &str) -> Option<&str> {
-        from.iter()
+struct Section {
+    title: String,
+    description: String,
+    subsections: IndexMap<String, Section>,
+    changes: String,
+}
+
+struct CommitChangelogData {
+    changelog_lines: Vec<String>,
+}
+
+impl CommitChangelogData {
+    fn new(commit_changelog: &str) -> Self {
+        let commit_changelog_lines = commit_changelog
+            .lines()
+            .map(|s| s.trim())
+            .collect::<Vec<_>>();
+
+        let re = Regex::new(r"(?m)^[a-z-]+:").unwrap(); // match keyword
+
+        let mut changelog_lines: Vec<String> = vec![];
+
+        for (i, &line) in commit_changelog_lines.iter().enumerate() {
+            if i == 0 {
+                changelog_lines.push(line.to_string());
+                continue;
+            }
+
+            if !re.is_match(line) {
+                // line does not start with keyword, append it to the previous one
+                // ie. remove hard wrapping (linefeeds) inside changelog section in commit message
+                let mut prev_line = changelog_lines.pop().unwrap_or_default();
+                prev_line.push(' ');
+                prev_line.push_str(line);
+                changelog_lines.push(prev_line);
+            } else {
+                changelog_lines.push(line.to_string());
+            }
+        }
+
+        Self { changelog_lines }
+    }
+
+    fn changelog_lines(&self) -> &Vec<String> {
+        self.changelog_lines.as_ref()
+    }
+
+    fn get_key(&self, key: &str) -> Option<&str> {
+        let key = key.to_owned() + ":";
+        self.changelog_lines
+            .iter()
             .map(|s| s.as_str())
-            .find(|&line| line.starts_with(key))
+            .find(|&line| line.starts_with(&key))
             .unwrap_or("")
             .split_once(':')
             .map(|(_, s)| s.trim())
     }
-}
-
-// TODO - refactor as a method of Commit struct
-fn changelog_lines(changelog: &str) -> Vec<String> {
-    let orig_changelog_lines = changelog.lines().map(|s| s.trim()).collect::<Vec<_>>();
-
-    let re = Regex::new(r"(?m)^[a-z-]+:").unwrap(); // match keyword
-
-    let mut changelog_lines: Vec<String> = vec![];
-
-    for (i, &line) in orig_changelog_lines.iter().enumerate() {
-        if i == 0 {
-            changelog_lines.push(line.to_string());
-            continue;
-        }
-
-        if !re.is_match(line) {
-            // line does not start with keyword, append it to the previous one
-            // ie. remove hard wrapping (linefeeds) inside changelog section in commit message
-            let mut prev_line = changelog_lines.pop().unwrap_or_default();
-            prev_line.push(' ');
-            prev_line.push_str(line);
-            changelog_lines.push(prev_line);
-        } else {
-            changelog_lines.push(line.to_string());
-        }
-    }
-
-    changelog_lines
 }
 
 #[cfg(test)]
@@ -295,7 +309,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn changelog_lines_with_multiple_lines_in_description() {
+    fn commit_changelog_with_multiple_lines_in_description() {
         let changelog_message = "\
 section: security:vuln_fixes
 title: Fixed vulnerability related to opening files
@@ -312,13 +326,29 @@ description: The application was vulnerable to attacks
             "title: Fixed vulnerability related to opening files",
             "description: The application was vulnerable to attacks if the attacker had access to the working directory. If you run this in such enviroment you should update ASAP. If your working directory is **not** accessible by unprivileged users you don't need to worry."];
 
-        let res = changelog_lines(changelog_message);
+        let commit_changelog_data = CommitChangelogData::new(changelog_message);
+        let res = commit_changelog_data.changelog_lines();
         assert_eq!(res.len(), 3);
-        assert_eq!(res, exp);
+        assert_eq!(*res, exp);
+
+        let section = commit_changelog_data.get_key("section").unwrap();
+        assert_eq!(section, "security:vuln_fixes");
+
+        let title = commit_changelog_data.get_key("title").unwrap();
+        assert_eq!(title, "Fixed vulnerability related to opening files");
+
+        // should not find non-present key ("descr" is not present, "description" is)
+        assert!(
+            commit_changelog_data.get_key("descr").is_none(),
+            "should not find non-present key"
+        );
+
+        let descr = commit_changelog_data.get_key("description").unwrap();
+        assert_eq!(descr, "The application was vulnerable to attacks if the attacker had access to the working directory. If you run this in such enviroment you should update ASAP. If your working directory is **not** accessible by unprivileged users you don't need to worry.");
     }
 
     #[test]
-    fn changelog_lines_with_multiple_lines_in_title_and_description() {
+    fn commit_changelog_with_multiple_lines_in_title_and_description() {
         let changelog_message = "\
 section: security:vuln_fixes
 title: Fixed vulnerability related
@@ -336,21 +366,23 @@ description: The application was vulnerable to attacks
             "title: Fixed vulnerability related to opening files",
             "description: The application was vulnerable to attacks if the attacker had access to the working directory. If you run this in such enviroment you should update ASAP. If your working directory is **not** accessible by unprivileged users you don't need to worry."];
 
-        let res = changelog_lines(changelog_message);
+        let commit_changelog_data = CommitChangelogData::new(changelog_message);
+        let res = commit_changelog_data.changelog_lines();
         assert_eq!(res.len(), 3);
-        assert_eq!(res, exp);
+        assert_eq!(*res, exp);
     }
 
     #[test]
-    fn changelog_lines_without_multiple_lines() {
+    fn commit_changelog_without_multiple_lines() {
         let changelog_message = "\
   inherit: all
   section: features";
 
         let exp = vec!["inherit: all", "section: features"];
 
-        let res = changelog_lines(changelog_message);
+        let commit_changelog_data = CommitChangelogData::new(changelog_message);
+        let res = commit_changelog_data.changelog_lines();
         assert_eq!(res.len(), 2);
-        assert_eq!(res, exp);
+        assert_eq!(*res, exp);
     }
 }
