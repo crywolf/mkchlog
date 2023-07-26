@@ -154,8 +154,9 @@ impl Changelog {
                 .into());
             }
 
+            let commit_message_description: String;
             if inherit == "all" {
-                let re = Regex::new(r"\n\s*\n").unwrap();
+                let re = Regex::new(r"\n\s*\n").unwrap(); // title is separated by empty line
                 let mut commit_message_iter = re.split(&commit.message);
 
                 title = commit_message_iter
@@ -163,11 +164,16 @@ impl Changelog {
                     .map(|s| s.trim())
                     .ok_or("Could not extract 'title' from commit message text")?;
 
-                // TODO - remove hard wrapping (linefeeds) in the description?
                 description = commit_message_iter
                     .next()
                     .map(|s| s.trim())
                     .ok_or("Could not extract 'description' from commit message text")?;
+
+                // remove hard wrapping (linefeeds) and identation added by git in the description
+                let commit_message_description_lines: Vec<_> =
+                    description.lines().map(|s| s.trim()).collect();
+                commit_message_description = commit_message_description_lines.join(" ");
+                description = &commit_message_description;
             }
 
             if !title.is_empty() {

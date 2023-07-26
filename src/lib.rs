@@ -1,14 +1,13 @@
-mod changelog;
+pub mod changelog;
 pub mod config;
-mod git;
-mod template;
+pub mod git;
+pub mod template;
 
+use crate::config::Command;
 use changelog::Changelog;
 use git::Git;
 use std::error::Error;
 use template::Template;
-
-use crate::config::Command;
 
 pub fn run(config: config::Config) -> Result<(), Box<dyn Error>> {
     let template = Template::new(config.filename)?;
