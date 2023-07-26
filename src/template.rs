@@ -1,5 +1,6 @@
 use std::fs;
 
+#[derive(Debug)]
 pub struct Template {
     data: Data,
 }
@@ -28,5 +29,19 @@ impl Template {
 
     pub fn data(&self) -> &Data {
         &self.data
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Template;
+
+    #[test]
+    fn template_new_with_wrong_path() {
+        let res = Template::new("nonexistent.file".to_owned());
+        assert!(res.is_err());
+        assert!(res
+            .unwrap_err()
+            .starts_with("Error reading config YAML file 'nonexistent.file'"));
     }
 }

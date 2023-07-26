@@ -35,7 +35,7 @@ If your working directory is **not** accessible by unprivileged users you don't 
 
 ### Added ability to skip commits.
 
-This allows commits to be skipped by typing changelog: skip \
+This allows commits to be skipped by typing 'changelog: skip' \
 at the end of the commit. This is mainly useful for typo fixes or other things irrelevant to the user of a project.
 
 ## Performance improvements

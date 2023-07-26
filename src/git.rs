@@ -1,65 +1,25 @@
-use commit::Commit;
+pub mod command;
+mod commit;
+
+use self::commit::Commit;
 use regex::Regex;
 use std::error::Error;
 
-pub trait GitLogCmd {
+pub trait GitLogCommand {
     fn get_log(&self) -> Result<String, Box<dyn Error>>;
 }
 
-pub struct GitCmd {
-    path: String,
-}
-
-impl GitCmd {
-    pub fn new(path: String) -> Self {
-        Self { path }
-    }
-}
-
-impl GitLogCmd for GitCmd {
-    fn get_log(&self) -> Result<String, Box<dyn Error>> {
-        let mut git_command = std::process::Command::new("git");
-        git_command.arg("-C").arg(&self.path).arg("log");
-
-        let git_cmd_output = git_command.output().map_err(|err| {
-            format!(
-                "Failed to execute '{}' command: {}",
-                git_command.get_program().to_str().unwrap_or("git"),
-                err
-            )
-        })?;
-
-        if !git_cmd_output.status.success() {
-            let args: Vec<_> = git_command
-                .get_args()
-                .map(|a| a.to_str().unwrap_or("git log"))
-                .collect();
-
-            return Err(format!(
-                "Failed to execute 'git {}' command:\n{}",
-                args.join(" "),
-                String::from_utf8_lossy(&git_cmd_output.stderr).into_owned()
-            )
-            .into());
-        }
-
-        let git_log = String::from_utf8_lossy(&git_cmd_output.stdout);
-
-        Ok(git_log.into_owned())
-    }
-}
-
 pub struct Git {
-    git_cmd: Box<dyn GitLogCmd>,
+    git_log_cmd: Box<dyn GitLogCommand>,
 }
 
 impl Git {
-    pub fn new(git_cmd: Box<dyn GitLogCmd>) -> Self {
-        Self { git_cmd }
+    pub fn new(git_log_cmd: Box<dyn GitLogCommand>) -> Self {
+        Self { git_log_cmd }
     }
 
     pub fn commits(&self) -> Result<Vec<Commit>, Box<dyn Error>> {
-        let git_log = self.git_cmd.get_log()?;
+        let git_log = self.git_log_cmd.get_log()?;
 
         let commit_regex = Regex::new(r"(?m)^commit [a-z|\d]{40}$").unwrap();
 
@@ -84,117 +44,48 @@ impl Git {
     }
 }
 
-mod commit {
-    use regex::Regex;
-    use std::error::Error;
-
-    pub struct Commit {
-        pub header: String,
-        pub message: String,
-        pub changelog_message: String,
-        pub raw_data: String,
-    }
-
-    impl Commit {
-        pub fn new(raw_data: &str) -> Result<Self, Box<dyn Error>> {
-            let data = &raw_data.replace('\r', "")[..]; // remove extra \r in Windows
-
-            let changelog_regex = Regex::new(r"(?m)^\s*changelog:").unwrap();
-
-            let mut commit_iter = changelog_regex.split(data);
-
-            let (header, commit_message) = commit_iter
-                .next()
-                .ok_or(format!(
-                    "Could not parse commit message in commit:\n>>> {}",
-                    raw_data
-                ))?
-                .split_once("\n\n")
-                .ok_or(format!(
-                    "Could not extract commit message text in commit:\n>>> {}",
-                    raw_data
-                ))?;
-
-            let changelog: String = commit_iter.map(|s| s.trim()).collect();
-            if changelog.is_empty() {
-                return Err(
-                    format!("Missing 'changelog:' key in commit:\n>>> {}", raw_data).into(),
-                );
-            }
-
-            let commit = Commit {
-                header: header.to_owned(),
-                message: commit_message.to_owned(),
-                changelog_message: changelog,
-                raw_data: raw_data.to_owned(),
-            };
-
-            Ok(commit)
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
-    fn commit_new() {
-        let raw_data = "commit 7c85bee4303d56bededdfacf8fbb7bdc68e2195b
+    pub struct GitCmdMock;
+
+    impl GitLogCommand for GitCmdMock {
+        fn get_log(&self) -> Result<String, Box<dyn Error>> {
+            let ouput = "\
+commit a1a654e256cc96e1c4b5a81845b5e3f3f0aa9ed3
 Author: Cry Wolf <cry.wolf@centrum.cz>
-Date:   Tue Jun 13 16:26:35 2023 +0200
+Date:   Tue Jun 13 16:25:29 2023 +0200
 
-    Don't reallocate the buffer when we know its size
+    Fixed grammar mistakes.
 
-    This computes the size and allocates the buffer upfront.
-    Avoiding allocations like this introduces 10% speedup.
+    We found 42 grammar mistakes that are fixed in this commit.
+
+    changelog: skip
+
+commit 62db026b0ead7f0659df10c70e402c70ede5d7dd
+Author: Cry Wolf <cry.wolf@centrum.cz>
+Date:   Tue Jun 13 16:24:22 2023 +0200
+
+    Added ability to skip commits.
+
+    This allows commits to be skipped by typing 'changelog: skip'
+    at the end of the commit. This is mainly useful for typo
+    fixes or other things irrelevant to the user of a project.
 
     changelog:
-        section: perf
-        title: Improved processing speed by 10%
-        title-is-enough: true
+        inherit: all
+        section: features";
 
-";
-
-        let exp_header = "commit 7c85bee4303d56bededdfacf8fbb7bdc68e2195b
-Author: Cry Wolf <cry.wolf@centrum.cz>
-Date:   Tue Jun 13 16:26:35 2023 +0200";
-
-        let exp_message = "    Don't reallocate the buffer when we know its size
-
-    This computes the size and allocates the buffer upfront.
-    Avoiding allocations like this introduces 10% speedup.
-";
-
-        let exp_changelog_message = "section: perf
-        title: Improved processing speed by 10%
-        title-is-enough: true";
-
-        let res = Commit::new(raw_data).unwrap();
-        assert_eq!(res.header, exp_header);
-        assert_eq!(res.message, exp_message);
-        assert_eq!(res.changelog_message, exp_changelog_message);
+            Ok(ouput.to_string())
+        }
     }
 
     #[test]
-    fn commit_new_with_windows_extra_carrige_return() {
-        // commit with \r\n as a line separator
-        let raw_data = "commit 7c85bee4303d56bededdfacf8fbb7bdc68e2195b\r\nAuthor: Cry Wolf <cry.wolf@centrum.cz>\r\nDate:   Tue Jun 13 16:26:35 2023 +0200\r\n\r\n    Don't reallocate the buffer when we know its size\r\n    changelog:\r\n        section: perf\r\n        title: Improved processing speed by 10%\r\n        title-is-enough: true";
+    fn commits() {
+        let git = Git::new(Box::new(GitCmdMock));
 
-        let exp_header = "commit 7c85bee4303d56bededdfacf8fbb7bdc68e2195b
-Author: Cry Wolf <cry.wolf@centrum.cz>
-Date:   Tue Jun 13 16:26:35 2023 +0200";
-
-        let exp_message = "    Don't reallocate the buffer when we know its size
-";
-
-        let exp_changelog_message = "section: perf
-        title: Improved processing speed by 10%
-        title-is-enough: true";
-
-        let res = Commit::new(raw_data).unwrap();
-        assert_eq!(res.header, exp_header);
-        assert_eq!(res.message, exp_message);
-        assert_eq!(res.changelog_message, exp_changelog_message);
+        let res = git.commits().unwrap();
+        assert_eq!(res.len(), 2);
     }
 }
