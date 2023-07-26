@@ -5,14 +5,15 @@ pub mod template;
 
 use crate::config::Command;
 use changelog::Changelog;
-use git::Git;
+use git::{Git, GitCmd};
 use std::error::Error;
 use template::Template;
 
 pub fn run(config: config::Config) -> Result<(), Box<dyn Error>> {
     let template = Template::new(config.filename)?;
 
-    let git = Git::new(config.git_path.to_string());
+    let git_cmd = Box::new(GitCmd::new(config.git_path.to_string()));
+    let git = Git::new(git_cmd);
 
     let changelog = Changelog::new(template, git);
 

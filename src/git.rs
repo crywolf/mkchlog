@@ -2,15 +2,21 @@ use commit::Commit;
 use regex::Regex;
 use std::error::Error;
 
-pub struct Git {
+pub trait GitLogCmd {
+    fn get_log(&self) -> Result<String, Box<dyn Error>>;
+}
+
+pub struct GitCmd {
     path: String,
 }
 
-impl Git {
+impl GitCmd {
     pub fn new(path: String) -> Self {
         Self { path }
     }
+}
 
+impl GitLogCmd for GitCmd {
     fn get_log(&self) -> Result<String, Box<dyn Error>> {
         let mut git_command = std::process::Command::new("git");
         git_command.arg("-C").arg(&self.path).arg("log");
@@ -41,9 +47,19 @@ impl Git {
 
         Ok(git_log.into_owned())
     }
+}
+
+pub struct Git {
+    git_cmd: Box<dyn GitLogCmd>,
+}
+
+impl Git {
+    pub fn new(git_cmd: Box<dyn GitLogCmd>) -> Self {
+        Self { git_cmd }
+    }
 
     pub fn commits(&self) -> Result<Vec<Commit>, Box<dyn Error>> {
-        let git_log = self.get_log()?;
+        let git_log = self.git_cmd.get_log()?;
 
         let commit_regex = Regex::new(r"(?m)^commit [a-z|\d]{40}$").unwrap();
 
