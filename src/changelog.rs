@@ -1,3 +1,5 @@
+//! Changelog creation logic
+
 use crate::git::Git;
 use crate::template::Template;
 use indexmap::IndexMap;
@@ -5,16 +7,19 @@ use regex::Regex;
 use std::error::Error;
 use std::vec;
 
+/// Represents the chngelog
 pub struct Changelog {
     template: Template,
     git: Git,
 }
 
 impl Changelog {
+    /// Creates a new [`Changelog`] object. Requires initialized [`Template`] and [`Git`] objects.
     pub fn new(template: Template, git: Git) -> Self {
         Self { template, git }
     }
 
+    /// Generates a changelog markdown string from the commit messages.
     pub fn produce(&self) -> Result<String, Box<dyn Error>> {
         // parsing template YAML data
         let tmpl_sections_key = match self.template.data().get("sections") {

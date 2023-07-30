@@ -1,12 +1,16 @@
+//! `git log` command implementation
+
 use std::error::Error;
 use std::path::PathBuf;
 
+/// Represents the `git log` command
 pub struct GitLogCmd {
     path: PathBuf,
     commit_id: Option<String>,
 }
 
 impl GitLogCmd {
+    /// Creates a new [`GitLogCmd`]. Accepts the path to the `git` repository and optional commit number.
     pub fn new(path: PathBuf, commit_id: Option<String>) -> Self {
         Self { path, commit_id }
     }

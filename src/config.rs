@@ -1,14 +1,24 @@
+//! Configuration of the CLI application
+//!
+//! Determines how to run the application, what command to dispatch etc. by parsing the command line arguments
+
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
+/// Configuration object for the application
 pub struct Config {
+    /// The name of the called command
     pub command: Command,
+    /// Path to the config (template) file
     pub file_path: std::path::PathBuf,
+    /// Path to the git repository
     pub git_path: std::path::PathBuf,
+    /// Commit number to start. Previous commits will be skipped during processing.
     pub commit_id: Option<String>,
 }
 
 impl Config {
+    /// Creates and initializes a new config.
     pub fn new() -> Result<Self, String> {
         let args = Args::parse();
 
@@ -25,7 +35,7 @@ impl Config {
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct Args {
-    /// Optional path to the yaml config file [default: ".mkchlog.yml"]
+    /// Optional path to the YAML template file [default: ".mkchlog.yml"]
     #[arg(short, long)]
     file_path: Option<PathBuf>,
 
@@ -41,6 +51,7 @@ struct Args {
     command: Command,
 }
 
+/// Application commands
 #[derive(Subcommand)]
 pub enum Command {
     /// Verify the structure of commit messages

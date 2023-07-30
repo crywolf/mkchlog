@@ -1,15 +1,23 @@
+//! Git commit
+
 use regex::Regex;
 use std::error::Error;
 
+/// Git commit
 #[derive(Debug)]
 pub struct Commit {
+    /// Git commit header
     pub header: String,
+    /// Git commit message
     pub message: String,
+    /// Changelog message extracted from the commit message
     pub changelog_message: String,
+    /// Raw data of the commit
     pub raw_data: String,
 }
 
 impl Commit {
+    /// Parses raw data of the commit and returns a [`Commit`] object.
     pub fn new(raw_data: &str) -> Result<Self, Box<dyn Error>> {
         let data = &raw_data.replace('\r', "")[..]; // remove extra \r in Windows
 

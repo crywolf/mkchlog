@@ -1,23 +1,30 @@
+//! Module for interaction with the `git` command
+
 pub mod command;
-mod commit;
+pub mod commit;
 
 use self::commit::Commit;
 use regex::Regex;
 use std::error::Error;
 
+/// Trait that represents the `git log` command functionality
 pub trait GitLogCommand {
+    /// Returns the output of the `git log` command
     fn get_log(&self) -> Result<String, Box<dyn Error>>;
 }
 
+/// Git object for interaction with `git` command
 pub struct Git {
     git_log_cmd: Box<dyn GitLogCommand>,
 }
 
 impl Git {
+    /// Creates a new [`Git`] object that uses `git_log_cmd` to obtain the commits.
     pub fn new(git_log_cmd: Box<dyn GitLogCommand>) -> Self {
         Self { git_log_cmd }
     }
 
+    /// Parses the output of the [`GitLogCommand`] and returns the collection of commits.
     pub fn commits(&self) -> Result<Vec<Commit>, Box<dyn Error>> {
         let git_log = self.git_log_cmd.get_log()?;
 

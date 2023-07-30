@@ -1,3 +1,7 @@
+//! Changelog generator tool suitable for user-facing changelogs and based on experiences of existing projects.
+//!
+//! Refer to `README.md` for more information
+
 pub mod changelog;
 pub mod config;
 pub mod git;
@@ -9,6 +13,7 @@ use crate::git::command::GitLogCmd;
 use crate::git::Git;
 use crate::template::Template;
 
+/// Entrypoint of the application
 pub fn run(config: config::Config) -> Result<(), Box<dyn std::error::Error>> {
     let template = Template::new(config.file_path)?;
 

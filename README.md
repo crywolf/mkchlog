@@ -25,7 +25,7 @@ The main input is in commit messages.
 
 You can provide additional options:
 * Commit number to start. Previous commits will be skipped. By default, all commit messages are checked.
-* Config file name [default value is `.mkchlog.yml`]
+* Config (template) file name [default value is `.mkchlog.yml`]
 * Path to the git repository [default value is the current directory]
 
 `mkchlog -c 7c85bee4303d56bededdfacf8fbb7bdc68e2195b -f .mkchlog.yml -g ../git-mkchlog-test/ gen`

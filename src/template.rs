@@ -1,5 +1,7 @@
+//! Tamplate represents parsed YAML file
 use std::fs;
 
+/// Tamplate represents parsed YAML file
 #[derive(Debug)]
 pub struct Template {
     data: Data,
@@ -8,6 +10,7 @@ pub struct Template {
 type Data = serde_yaml::Value;
 
 impl Template {
+    /// Parses the config (template) YAML file and returns the initialized template object.
     pub fn new(file_path: std::path::PathBuf) -> Result<Self, String> {
         let config_yml = match fs::read_to_string(&file_path) {
             Ok(config) => config,
@@ -28,6 +31,7 @@ impl Template {
         Ok(Template { data: config })
     }
 
+    /// Returns template data extracted from the comnfiguration (template) file.
     pub fn data(&self) -> &Data {
         &self.data
     }
