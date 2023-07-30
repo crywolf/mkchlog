@@ -8,10 +8,9 @@ This is still work in progress!
 
 ### The mkchlog command
 
-A single-binary program will be created.
-It has these two subcommands:
+Program has these two subcommands:
 
-* `check` - will verify the structure of commit messages since the last version/in the PR. Intended to be used in CI on PRs.
+* `check` - will verify the structure of commit messages (all commits or since the specified commit number, tj. since the last version/in the PR). Intended to be used in CI on PRs.
 * `gen` - will process git history and output the changelog in markdown format into a file/stdout.
 
 The command is configured using `.mkchlog.yml` - a per-project configuration file.
@@ -24,10 +23,14 @@ The main input is in commit messages.
 
 `mkchlog gen`
 
-You can provide additional arguments (config file name [dafault value is `.mkchlog.yml`]
-and path to the git repository [default value is the current directory]):
+You can provide additional options:
+* Commit number to start. Previous commits will be skipped. By default, all commit messages are checked.
+* Config file name [default value is `.mkchlog.yml`]
+* Path to the git repository [default value is the current directory]
 
-`mkchlog gen .mkchlog.yml ../git-mkchlog-test/`
+`mkchlog -c 7c85bee4303d56bededdfacf8fbb7bdc68e2195b -f .mkchlog.yml -g ../git-mkchlog-test/ gen`
+
+Run `mkchlog help` for complete command documentation
 
 ### Example inputs
 

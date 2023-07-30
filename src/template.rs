@@ -8,13 +8,14 @@ pub struct Template {
 type Data = serde_yaml::Value;
 
 impl Template {
-    pub fn new(filename: String) -> Result<Self, String> {
-        let config_yml = match fs::read_to_string(&filename) {
+    pub fn new(file_path: std::path::PathBuf) -> Result<Self, String> {
+        let config_yml = match fs::read_to_string(&file_path) {
             Ok(config) => config,
             Err(err) => {
                 return Err(format!(
                     "Error reading config YAML file '{}': {}",
-                    filename, err
+                    file_path.display(),
+                    err
                 ))
             }
         };
@@ -35,10 +36,10 @@ impl Template {
 #[cfg(test)]
 mod tests {
     use super::Template;
-
+    use std::path::PathBuf;
     #[test]
     fn template_new_with_wrong_path() {
-        let res = Template::new("nonexistent.file".to_owned());
+        let res = Template::new(PathBuf::from("nonexistent.file"));
         assert!(res.is_err());
         assert!(res
             .unwrap_err()

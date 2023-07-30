@@ -82,7 +82,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     }
 
     #[test]
-    fn commits() {
+    fn git_commits() {
         let git = Git::new(Box::new(GitCmdMock));
 
         let res = git.commits().unwrap();

@@ -5,10 +5,11 @@ use mkchlog::git::Git;
 use mkchlog::template::Template;
 use mocks::GitCmdMock;
 use std::error::Error;
+use std::path::PathBuf;
 
 #[test]
 fn it_produces_correct_output() -> Result<(), Box<dyn Error>> {
-    let template = Template::new(".mkchlog.yml".to_owned())?;
+    let template = Template::new(PathBuf::from(".mkchlog.yml"))?;
 
     let git_cmd = Box::new(GitCmdMock);
     let git = Git::new(git_cmd);

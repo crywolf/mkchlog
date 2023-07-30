@@ -1,12 +1,14 @@
 use std::error::Error;
+use std::path::PathBuf;
 
 pub struct GitLogCmd {
-    path: String,
+    path: PathBuf,
+    commit_id: Option<String>,
 }
 
 impl GitLogCmd {
-    pub fn new(path: String) -> Self {
-        Self { path }
+    pub fn new(path: PathBuf, commit_id: Option<String>) -> Self {
+        Self { path, commit_id }
     }
 }
 
@@ -14,6 +16,11 @@ impl super::GitLogCommand for GitLogCmd {
     fn get_log(&self) -> Result<String, Box<dyn Error>> {
         let mut git_command = std::process::Command::new("git");
         git_command.arg("-C").arg(&self.path).arg("log");
+
+        if self.commit_id.is_some() {
+            // add argument: git log 7c85bee4303d56bededdfacf8fbb7bdc68e2195b..HEAD
+            git_command.arg(format!("{}..HEAD", self.commit_id.as_ref().unwrap()));
+        }
 
         let git_cmd_output = git_command.output().map_err(|err| {
             format!(
