@@ -153,7 +153,7 @@ impl Changelog {
 
             if !changelog_map.contains_key(section) {
                 return Err(format!(
-                    "Unknown section '{}' in changelog messsage:\n>>> {}",
+                    "Unknown section '{}' in changelog message:\n>>> {}",
                     section, commit.raw_data
                 )
                 .into());
@@ -169,10 +169,10 @@ impl Changelog {
                     .map(|s| s.trim())
                     .ok_or("Could not extract 'title' from commit message text")?;
 
-                description = commit_message_iter
-                    .next()
-                    .map(|s| s.trim())
-                    .ok_or("Could not extract 'description' from commit message text")?;
+                description = commit_message_iter.next().map(|s| s.trim()).ok_or(format!(
+                    "Could not extract 'description' from commit message text:\n>>> {}",
+                    commit.message
+                ))?;
 
                 // remove hard wrapping (linefeeds) and identation added by git in the description
                 let commit_message_description_lines: Vec<_> =
