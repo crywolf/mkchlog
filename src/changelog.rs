@@ -2,12 +2,11 @@
 
 use crate::git::Git;
 use crate::template::Template;
-use indexmap::IndexMap;
 use regex::Regex;
 use std::error::Error;
 use std::vec;
 
-/// Represents the chngelog
+/// Represents the generated changelog
 pub struct Changelog {
     template: Template,
     git: Git,
@@ -21,104 +20,13 @@ impl Changelog {
 
     /// Generates a changelog markdown string from the commit messages.
     pub fn produce(&self) -> Result<String, Box<dyn Error>> {
-        // parsing template YAML data
-        let tmpl_sections_key = match self.template.data().get("sections") {
-            Some(v) => v,
-            None => return Err("Missing 'sections' key in config file".into()),
-        };
-
-        let tmpl_sections = tmpl_sections_key
-            .as_mapping()
-            .ok_or("Malformed 'sections' key in config file")?;
-
         // prepare changelog structure from template YAML data
-        let mut changelog_map = IndexMap::<String, Section>::new();
-
-        for (sec, val) in tmpl_sections {
-            let sec = sec.as_str().ok_or("Invalid section")?.to_owned();
-            let val = val
-                .as_mapping()
-                .ok_or(format!("Invalid value in section '{}' in config file", sec))?;
-
-            let title = val
-                .get("title")
-                .ok_or(format!(
-                    "Missing 'title' in section '{}' in config file",
-                    sec
-                ))?
-                .as_str()
-                .ok_or(format!(
-                    "Invalid 'title' in section '{}' in config file",
-                    sec
-                ))?;
-
-            let mut description = "".to_owned();
-            if let Some(descr) = val.get("description") {
-                description = descr.as_str().unwrap_or("").to_string();
-            }
-
-            let mut section = Section {
-                title: title.to_string(),
-                description: description.to_string(),
-                subsections: IndexMap::new(),
-                changes: String::new(),
-            };
-
-            if let Some(subsections) = val.get("subsections") {
-                let mut sub_section_map = IndexMap::<String, String>::new();
-                sub_section_map.insert("title".to_string(), title.to_string());
-
-                let subsections_map: Result<IndexMap<String, Section>, String> = subsections
-                    .as_mapping()
-                    .ok_or(format!(
-                        "Invalid subsections format in section {} in config file",
-                        sec
-                    ))?
-                    .iter()
-                    .map(|(key, val)| {
-                        let subsection_name = key.as_str().ok_or(format!(
-                            "Invalid subsection in section '{}' in config file",
-                            sec
-                        ))?;
-
-                        let title = val
-                            .get("title")
-                            .ok_or(format!(
-                                "Missing 'title' in section '{}' in config file",
-                                subsection_name
-                            ))?
-                            .as_str()
-                            .ok_or(format!(
-                                "Invalid 'title' in section '{}' in config file",
-                                subsection_name
-                            ))?;
-
-                        let mut description = "";
-                        if let Some(descr) = val.get("description") {
-                            description = descr.as_str().unwrap_or("");
-                        }
-
-                        Ok((
-                            subsection_name.to_string(),
-                            Section {
-                                title: title.to_string(),
-                                description: description.to_string(),
-                                subsections: IndexMap::new(),
-                                changes: String::new(),
-                            },
-                        ))
-                    })
-                    .collect();
-                section.subsections = subsections_map?;
-            }
-
-            changelog_map.insert(sec.to_string(), section);
-        }
+        let mut changelog_map = self.template.data();
 
         // iterate through commits and fill in changelog_map
         let commits = self.git.commits()?;
 
-        // insert changelog entries from commits
+        // insert changelog entries from commits to changelog_map
         for commit in commits {
             let mut changes = String::new();
 
@@ -148,8 +56,6 @@ impl Changelog {
                 .split_once(':')
                 .map(|(sec, subsec)| (sec, subsec.trim()))
                 .unwrap_or((section, ""));
-
-            ///////////////////
 
             if !changelog_map.contains_key(section) {
                 return Err(format!(
@@ -210,11 +116,11 @@ impl Changelog {
             }
         }
 
-        ////////////////////////////
+        // format changelog output
         let mut buff = String::new();
         buff.push_str("============================================");
 
-        for (_, sec) in changelog_map.into_iter() {
+        for (_, sec) in changelog_map {
             buff.push_str("\n## ");
             buff.push_str(&sec.title);
 
@@ -254,13 +160,6 @@ impl Changelog {
 
         Ok(buff)
     }
-}
-
-struct Section {
-    title: String,
-    description: String,
-    subsections: IndexMap<String, Section>,
-    changes: String,
 }
 
 struct CommitChangelogData {
