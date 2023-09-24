@@ -12,10 +12,23 @@ use crate::config::Command;
 use crate::git::command::GitLogCmd;
 use crate::git::Git;
 use crate::template::Template;
+use std::fs::File;
 
 /// Entrypoint of the application
 pub fn run(config: config::Config) -> Result<(), Box<dyn std::error::Error>> {
-    let template = Template::new(config.file_path)?;
+    let f = match File::open(&config.file_path) {
+        Ok(f) => f,
+        Err(err) => {
+            return Err(format!(
+                "Error reading config YAML file '{}': {}",
+                config.file_path.display(),
+                err
+            )
+            .into())
+        }
+    };
+
+    let template = Template::new(f)?;
 
     let git_cmd = Box::new(GitLogCmd::new(config.git_path, config.commit_id));
     let git = Git::new(git_cmd);

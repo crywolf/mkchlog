@@ -4,12 +4,12 @@ use mkchlog::changelog::Changelog;
 use mkchlog::git::Git;
 use mkchlog::template::Template;
 use mocks::GitCmdMock;
-use std::path::PathBuf;
+use std::fs::File;
+
+const YAML_FILE: &str = ".mkchlog.yml";
 
 #[test]
 fn it_produces_correct_output() {
-    let template = Template::new(PathBuf::from(".mkchlog.yml")).unwrap();
-
     let mocked_log = String::from(
         "\
 commit 1cc72956df91e2fd8c45e72983c4e1149f1ac3b3
@@ -74,6 +74,8 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let git_cmd = Box::new(GitCmdMock::new(mocked_log));
     let git = Git::new(git_cmd);
 
+    let f = File::open(YAML_FILE).unwrap();
+    let template = Template::new(f).unwrap();
     let changelog = Changelog::new(template, git);
 
     let output = changelog.produce().unwrap();
@@ -109,8 +111,6 @@ at the end of the commit. This is mainly useful for typo fixes or other things i
 
 #[test]
 fn fails_when_unknown_section_in_commit() {
-    let template = Template::new(PathBuf::from(".mkchlog.yml")).unwrap();
-
     let mocked_log = String::from(
         "\
 commit 62db026b0ead7f0659df10c70e402c70ede5d7dd
@@ -131,6 +131,8 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let git_cmd = Box::new(GitCmdMock::new(mocked_log));
     let git = Git::new(git_cmd);
 
+    let f = File::open(YAML_FILE).unwrap();
+    let template = Template::new(f).unwrap();
     let changelog = Changelog::new(template, git);
 
     let res = changelog.produce();
@@ -144,8 +146,6 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
 
 #[test]
 fn fails_when_missing_section_key_in_commit() {
-    let template = Template::new(PathBuf::from(".mkchlog.yml")).unwrap();
-
     let mocked_log = String::from(
         "\
 commit 62db026b0ead7f0659df10c70e402c70ede5d7dd
@@ -165,6 +165,8 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let git_cmd = Box::new(GitCmdMock::new(mocked_log));
     let git = Git::new(git_cmd);
 
+    let f = File::open(YAML_FILE).unwrap();
+    let template = Template::new(f).unwrap();
     let changelog = Changelog::new(template, git);
 
     let res = changelog.produce();
@@ -178,8 +180,6 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
 
 #[test]
 fn fails_when_only_one_line_in_commit() {
-    let template = Template::new(PathBuf::from(".mkchlog.yml")).unwrap();
-
     let mocked_log = String::from(
         "\
 commit 62db026b0ead7f0659df10c70e402c70ede5d7dd
@@ -196,6 +196,8 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let git_cmd = Box::new(GitCmdMock::new(mocked_log));
     let git = Git::new(git_cmd);
 
+    let f = File::open(YAML_FILE).unwrap();
+    let template = Template::new(f).unwrap();
     let changelog = Changelog::new(template, git);
 
     let res = changelog.produce();
