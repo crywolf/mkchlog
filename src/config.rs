@@ -13,7 +13,7 @@ pub struct Config {
     pub file_path: std::path::PathBuf,
     /// Path to the git repository
     pub git_path: std::path::PathBuf,
-    /// Commit number to start. Previous commits will be skipped during processing.
+    /// Commit number to start. This one and previous commits will be skipped during processing.
     pub commit_id: Option<String>,
 }
 
@@ -43,7 +43,7 @@ struct Args {
     #[arg(short, long)]
     git_path: Option<PathBuf>,
 
-    /// Optional commit number. Previous commits will be skipped. By default, all commit messages are checked.
+    /// Optional commit number. This one and previous commits will be skipped. By default, all commit messages are checked.
     #[arg(short, long)]
     commit: Option<String>,
 

@@ -2,8 +2,6 @@
 
 Changelog generator tool suitable for user-facing changelogs and based on experiences of existing projects.
 
-This is still work in progress!
-
 ## Overview
 
 ### The mkchlog command
@@ -24,7 +22,7 @@ The main input is in commit messages.
 `mkchlog gen`
 
 You can provide additional options:
-* Commit number to start. Previous commits will be skipped. By default, all commit messages are checked.
+* Commit number to start. This one and previous commits will be skipped. By default, all commit messages are checked.
 * Config (template) file name [default value is `.mkchlog.yml`]
 * Path to the git repository [default value is the current directory]
 
@@ -136,6 +134,8 @@ fixes or other things irrelevant to the user of a project.
 ```
 
 ### Explanation
+
+(Rationale, idea and motivation by [Kixunil](https://github.com/Kixunil))
 
 Commit messages should contain descriptive information about the change.
 However not all of it is suitable to be in the changelog.
