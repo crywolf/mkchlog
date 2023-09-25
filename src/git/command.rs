@@ -23,7 +23,10 @@ impl super::GitLogCommand for GitLogCmd {
 
         if self.commit_id.is_some() {
             // add argument: git log 7c85bee4303d56bededdfacf8fbb7bdc68e2195b..HEAD
-            git_command.arg(format!("{}..HEAD", self.commit_id.as_ref().unwrap()));
+            git_command.arg(format!(
+                "{}..HEAD",
+                self.commit_id.as_ref().expect("commit_id is not empty")
+            ));
         }
 
         let git_cmd_output = git_command.output().map_err(|err| {

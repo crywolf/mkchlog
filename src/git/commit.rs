@@ -21,7 +21,7 @@ impl Commit {
     pub fn new(raw_data: &str) -> Result<Self, Box<dyn Error>> {
         let data = &raw_data.replace('\r', "")[..]; // remove extra \r in Windows
 
-        let changelog_regex = Regex::new(r"(?m)^\s*changelog:").unwrap();
+        let changelog_regex = Regex::new(r"(?m)^\s*changelog:").expect("should never panic");
 
         let mut commit_iter = changelog_regex.split(data);
 

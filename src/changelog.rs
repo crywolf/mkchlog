@@ -41,9 +41,7 @@ impl Changelog {
                 "Missing 'section' key in changelog message:\n>>> {}",
                 commit.raw_data
             ))?;
-
             let mut title = commit_changelog_data.get_key("title").unwrap_or("");
-
             let mut description = commit_changelog_data.get_key("description").unwrap_or("");
 
             let title_is_enough = commit_changelog_data
@@ -67,8 +65,8 @@ impl Changelog {
 
             let commit_message_description: String;
             if inherit == "all" {
-                let re = Regex::new(r"\n\s*\n").unwrap(); // title is separated by empty line
-                let mut commit_message_iter = re.split(&commit.message);
+                let re = Regex::new(r"\n\s*\n").expect("should never panic"); // title is separated by empty line
+                let mut commit_message_iter = re.splitn(&commit.message, 2);
 
                 title = commit_message_iter
                     .next()
@@ -106,13 +104,16 @@ impl Changelog {
             if !sub_section.is_empty() {
                 changelog_map
                     .get_mut(section)
-                    .unwrap() // TODO
+                    .expect("section should be set correctly")
                     .subsections
                     .get_mut(sub_section)
-                    .unwrap() // TODO
+                    .expect("sub_section is not empty here")
                     .changes = changes;
             } else {
-                changelog_map.get_mut(section).unwrap().changes = changes;
+                changelog_map
+                    .get_mut(section)
+                    .expect("section should be set correctly")
+                    .changes = changes;
             }
         }
 
@@ -173,7 +174,7 @@ impl CommitChangelogData {
             .map(|s| s.trim())
             .collect::<Vec<_>>();
 
-        let re = Regex::new(r"(?m)^[a-z-]+:").unwrap(); // match keyword
+        let re = Regex::new(r"(?m)^[a-z-]+:").expect("should never panic"); // match keyword
 
         let mut changelog_lines: Vec<String> = vec![];
 

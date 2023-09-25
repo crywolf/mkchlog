@@ -28,7 +28,7 @@ impl Git {
     pub fn commits(&self) -> Result<Vec<Commit>, Box<dyn Error>> {
         let git_log = self.git_log_cmd.get_log()?;
 
-        let commit_regex = Regex::new(r"(?m)^commit [a-z|\d]{40}$").unwrap();
+        let commit_regex = Regex::new(r"(?m)^commit [a-z|\d]{40}$").expect("should never panic");
 
         let mut matches = commit_regex.find_iter(&git_log); // matches all lines with commit numbers
 
