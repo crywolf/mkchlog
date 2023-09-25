@@ -122,8 +122,10 @@ impl Changelog {
         buff.push_str("============================================");
 
         for (_, sec) in changelog_map {
-            buff.push_str("\n## ");
-            buff.push_str(&sec.title);
+            if !sec.changes.is_empty() || !sec.subsections.is_empty() {
+                buff.push_str("\n## ");
+                buff.push_str(&sec.title);
+            }
 
             if !sec.description.is_empty() {
                 buff.push_str("\n\n");

@@ -110,6 +110,60 @@ at the end of the commit. This is mainly useful for typo fixes or other things i
 }
 
 #[test]
+fn only_sections_with_commits_shoud_be_printed_out() {
+    let mocked_log = String::from(
+        "\
+commit 1cc72956df91e2fd8c45e72983c4e1149f1ac3b3
+Author: Cry Wolf <cry.wolf@centrum.cz>
+Date:   Tue Jun 13 16:27:59 2023 +0200
+
+    Fixed TOCTOU race condition when opening file
+
+    Previously we checked the file permissions before opening
+    the file now we check the metadata using file descriptor
+    after opening the file. (before reading)
+
+    changelog:
+        section: security:vuln_fixes
+        title: Fixed vulnerability related to opening files
+        description: The application was vulnerable to attacks
+                     if the attacker had access to the working
+                     directory. If you run this in such
+                     enviroment you should update ASAP. If your
+                     working directory is **not** accessible by
+                     unprivileged users you don't need to worry.
+
+",
+    );
+
+    let git_cmd = Box::new(GitCmdMock::new(mocked_log));
+    let git = Git::new(git_cmd);
+
+    let f = File::open(YAML_FILE).unwrap();
+    let template = Template::new(f).unwrap();
+    let changelog = Changelog::new(template, git);
+
+    let output = changelog.produce().unwrap();
+
+    let exp_output = "\
+============================================
+## Security
+
+This section contains very important security-related changes.
+
+### Fixed vulnerabilities
+
+#### Fixed vulnerability related to opening files
+
+The application was vulnerable to attacks if the attacker had access to the working directory. \
+If you run this in such enviroment you should update ASAP. \
+If your working directory is **not** accessible by unprivileged users you don't need to worry.
+============================================";
+
+    assert_eq!(exp_output, output);
+}
+
+#[test]
 fn fails_when_unknown_section_in_commit() {
     let mocked_log = String::from(
         "\
