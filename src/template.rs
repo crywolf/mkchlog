@@ -7,6 +7,7 @@ use std::io::Read;
 #[derive(Debug)]
 pub struct Template {
     changelog_map: ChangelogMap,
+    pub(crate) skip_commits_up_to: Option<String>,
 }
 
 type ChangelogMap = IndexMap<String, Section>;
@@ -23,7 +24,12 @@ impl Template {
             Err(err) => return Err(format!("Error parsing config YAML file: {}", err).into()),
         };
 
+        let skip_commits_up_to = config.get("skip-commits-up-to").map(|value| {
+            value.as_str().map(ToOwned::to_owned).ok_or(format!("skip-commits-up-to must be a string"))
+        }).transpose()?;
+
         let mut template = Self {
+            skip_commits_up_to,
             changelog_map: ChangelogMap::new(),
         };
         template.parse_config(config)?;

@@ -20,4 +20,4 @@ jobs:
       - name: Build mkchlog
         run: cargo build
       - name: Check our own changelog
-        run: target/debug/mkchlog -c bc58e6bf2cf640d46aa832e297d0f215f76dfce0 check
+        run: target/debug/mkchlog check
