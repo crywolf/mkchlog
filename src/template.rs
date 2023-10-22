@@ -2,6 +2,7 @@
 use indexmap::IndexMap;
 use std::error::Error;
 use std::io::Read;
+use serde_yaml::Value;
 
 /// Template represents parsed YAML config file
 #[derive(Debug)]
@@ -82,7 +83,7 @@ impl Template {
                 .ok_or(format!("Invalid value in section '{}' in config file", sec))?;
 
             let title = val
-                .get("title")
+                .get(&Value::from("title"))
                 .ok_or(format!(
                     "Missing 'title' in section '{}' in config file",
                     sec
@@ -94,7 +95,7 @@ impl Template {
                 ))?;
 
             let mut description = "".to_owned();
-            if let Some(descr) = val.get("description") {
+            if let Some(descr) = val.get(&Value::from("description")) {
                 description = descr.as_str().unwrap_or("").to_string();
             }
 
@@ -105,7 +106,7 @@ impl Template {
                 changes: String::new(),
             };
 
-            if let Some(subsections) = val.get("subsections") {
+            if let Some(subsections) = val.get(&Value::from("subsections")) {
                 let mut sub_section_map = IndexMap::<String, String>::new();
                 sub_section_map.insert("title".to_string(), title.to_string());
 
