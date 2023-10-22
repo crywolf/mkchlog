@@ -6,7 +6,7 @@ use mkchlog::template::Template;
 use mocks::GitCmdMock;
 use std::fs::File;
 
-const YAML_FILE: &str = ".mkchlog.yml";
+const YAML_FILE: &str = "tests/mkchlog.yml";
 
 #[test]
 fn it_produces_correct_output() {

@@ -1,0 +1,23 @@
+name: Check changelog
+
+on:
+  push:
+    branches: [ master, ci ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build_and_check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout mkchlog
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Checkout toolchain
+        # https://github.com/dtolnay/rust-toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Build mkchlog
+        run: cargo build
+      - name: Check our own changelog
+        run: target/debug/mkchlog -c bc58e6bf2cf640d46aa832e297d0f215f76dfce0 check
