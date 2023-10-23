@@ -16,7 +16,7 @@ impl Template {
     /// Parses the config (template) YAML file and returns the initialized template object.
     pub fn new(mut file: impl Read) -> Result<Self, Box<dyn Error>> {
         let mut config_yml = String::new();
-        _ = file.read_to_string(&mut config_yml);
+        file.read_to_string(&mut config_yml)?;
 
         let config: Yaml = match serde_yaml::from_str(&config_yml) {
             Ok(config) => config,
