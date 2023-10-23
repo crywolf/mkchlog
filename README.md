@@ -51,6 +51,9 @@ sections:
         title: New features
     perf:
         title: Performance improvements
+    dev:
+        title: Development
+        description: Internal development changes
 ```
 
 #### Commits
@@ -105,6 +108,30 @@ changelog:
                  unprivileged users you don't need to worry.
 ```
 
+```
+Setup Github Actions
+
+This configures github actions to test `mkchlog` as well as run it on
+its own repository.
+
+The new `.mkchlog.yml` is heavily inspired by the original example with
+more sections, so we're more flexible in the future.
+
+changelog:
+	section: dev
+	title-is-enough: true
+```
+
+```
+Allow configuring commit ID in yaml
+
+This adds a field `skip-commits-up-to` into top level of yaml config so that users don't have to remember what to supply in `-c` argument every time.
+
+changelog:
+    section: features
+    inherit: all
+```
+
 ### Example output
 
 ```markdown
@@ -116,21 +143,28 @@ This section contains very important security-related changes.
 
 #### Fixed vulnerability related to opening files
 
-The application was vulnerable to attacks if the attacker had access to the working directory.
-If you run this in such enviroment you should update ASAP.
-If your working directory is **not** accessible by unprivileged users you don't need to worry.
+The application was vulnerable to attacks if the attacker had access to the working directory. If you run this in such enviroment you should update ASAP. If your working directory is **not** accessible by unprivileged users you don't need to worry.
 
 ## New features
 
+### Allow configuring commit ID in yaml
+
+This adds a field `skip-commits-up-to` into top level of yaml config so that users don't have to remember what to supply in `-c` argument every time.
+
 ### Added ability to skip commits.
 
-This allows commits to be skipped by typing changelog: skip
-at the end of the commit. This is mainly useful for typo
-fixes or other things irrelevant to the user of a project.
+This allows commits to be skipped by typing changelog: skip at the end of the commit. This is mainly useful for typo fixes or other things irrelevant to the user of a project.
 
 ## Performance improvements
 
 * Improved processing speed by 10%
+
+## Development
+
+Internal development changes
+
+* Setup Github Actions
+*****
 ```
 
 ### Explanation

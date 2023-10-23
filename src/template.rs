@@ -135,7 +135,7 @@ impl Template {
 }
 
 /// Data structure to store changelog section data
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Section {
     pub title: String,
     pub description: String,
@@ -168,6 +168,9 @@ mod tests {
 
     #[test]
     fn template_valid_yaml() {
+        use super::Section;
+        use indexmap::IndexMap;
+
         let f = FileReaderMock::new(
             "\
 # Possibly general settings here, probably none in the initial version
@@ -185,13 +188,84 @@ sections:
     features:
         # some comment
         title: New features
+    bug_fixes:
+        title: Fixed bugs
+    breaking:
+        title: Breaking changes
     perf:
         title: Performance improvements
+    dev:
+        title: Development
+        description: Internal development changes
 ",
         );
 
         let res = Template::new(f);
         assert!(res.is_ok());
+
+        // check if parsed template has correct format
+        let template_data = res.unwrap().data();
+
+        let exp_keys = template_data.keys().collect::<Vec<_>>();
+        assert_eq!(exp_keys.len(), 6);
+        assert_eq!(
+            exp_keys,
+            vec![
+                "security",
+                "features",
+                "bug_fixes",
+                "breaking",
+                "perf",
+                "dev",
+            ]
+        );
+
+        let exp_sections = template_data.values().cloned().collect::<Vec<_>>();
+        assert_eq!(exp_sections.len(), 6);
+
+        // 'security' section with subsection
+        let mut subsecs = IndexMap::new();
+        subsecs.insert(
+            "vuln_fixes".to_owned(),
+            Section {
+                title: "Fixed vulnerabilities".to_owned(),
+                description: "".to_owned(),
+                subsections: IndexMap::new(),
+                changes: "".to_owned(),
+            },
+        );
+        assert_eq!(
+            exp_sections[0],
+            Section {
+                title: "Security".to_owned(),
+                description: "This section contains very important security-related changes."
+                    .to_owned(),
+                subsections: subsecs,
+                changes: "".to_owned(),
+            }
+        );
+
+        // 'features' section
+        assert_eq!(
+            exp_sections[1],
+            Section {
+                title: "New features".to_owned(),
+                description: "".to_owned(),
+                subsections: IndexMap::new(),
+                changes: "".to_owned(),
+            }
+        );
+
+        // 'dev' section
+        assert_eq!(
+            exp_sections[5],
+            Section {
+                title: "Development".to_owned(),
+                description: "Internal development changes".to_owned(),
+                subsections: IndexMap::new(),
+                changes: "".to_owned(),
+            }
+        );
     }
 
     #[test]

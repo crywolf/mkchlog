@@ -64,7 +64,7 @@ impl Changelog {
             }
 
             let commit_message_description: String;
-            if inherit == "all" {
+            if inherit == "all" || (!title_is_enough.is_empty() && title.is_empty()) {
                 let re = Regex::new(r"\n\s*\n").expect("should never panic"); // title is separated by empty line
                 let mut commit_message_iter = re.splitn(&commit.message, 2);
 
@@ -94,11 +94,12 @@ impl Changelog {
                     changes.push_str("### ");
                 }
                 changes.push_str(title);
+                changes.push_str("\n\n");
             }
 
-            if !description.is_empty() {
-                changes.push_str("\n\n");
+            if !description.is_empty() && title_is_enough.is_empty() {
                 changes.push_str(description);
+                changes.push_str("\n\n");
             }
 
             if !sub_section.is_empty() {
@@ -108,53 +109,59 @@ impl Changelog {
                     .subsections
                     .get_mut(sub_section)
                     .expect("sub_section is not empty here")
-                    .changes = changes;
+                    .changes
+                    .push_str(changes.as_str());
             } else {
                 changelog_map
                     .get_mut(section)
                     .expect("section should be set correctly")
-                    .changes = changes;
+                    .changes
+                    .push_str(changes.as_str());
             }
         }
 
         // format changelog output
         let mut buff = String::new();
-        buff.push_str("============================================");
+        buff.push_str("============================================\n\n");
 
         for (_, sec) in changelog_map {
             if !sec.changes.is_empty() || !sec.subsections.is_empty() {
-                buff.push_str("\n## ");
-                buff.push_str(&sec.title);
-            }
+                let mut print_section_header = !sec.changes.is_empty();
+                for (_, subsec) in sec.subsections.iter() {
+                    if !subsec.changes.is_empty() {
+                        print_section_header = true;
+                    }
+                }
 
-            if !sec.description.is_empty() {
-                buff.push_str("\n\n");
-                buff.push_str(&sec.description);
-                buff.push('\n');
+                if print_section_header {
+                    buff.push_str("## ");
+                    buff.push_str(&sec.title);
+                    buff.push_str("\n\n");
+
+                    if !sec.description.is_empty() {
+                        buff.push_str(&sec.description);
+                        buff.push_str("\n\n");
+                    }
+                }
             }
 
             if !sec.changes.is_empty() {
-                buff.push_str("\n\n");
                 buff.push_str(&sec.changes);
-                buff.push('\n');
             }
 
             if !sec.subsections.is_empty() {
                 for (_, subsec) in sec.subsections {
-                    buff.push_str("\n### ");
-                    buff.push_str(&subsec.title);
-
-                    if !subsec.description.is_empty() {
-                        buff.push_str("\n\n");
-                        buff.push_str(&subsec.description);
-                        buff.push('\n');
-                    }
-
                     if !subsec.changes.is_empty() {
+                        buff.push_str("### ");
+                        buff.push_str(&subsec.title);
                         buff.push_str("\n\n");
-                        buff.push_str(&subsec.changes);
-                        buff.push('\n');
+
+                        if !subsec.description.is_empty() {
+                            buff.push_str(&subsec.description);
+                            buff.push_str("\n\n");
+                        }
                     }
+                    buff.push_str(&subsec.changes);
                 }
             }
         }

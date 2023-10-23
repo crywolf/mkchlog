@@ -82,6 +82,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
 
     let exp_output = "\
 ============================================
+
 ## Security
 
 This section contains very important security-related changes.
@@ -104,6 +105,7 @@ at the end of the commit. This is mainly useful for typo fixes or other things i
 ## Performance improvements
 
 * Improved processing speed by 10%
+
 ============================================";
 
     assert_eq!(exp_output, output);
@@ -147,6 +149,7 @@ Date:   Tue Jun 13 16:27:59 2023 +0200
 
     let exp_output = "\
 ============================================
+
 ## Security
 
 This section contains very important security-related changes.
@@ -158,6 +161,7 @@ This section contains very important security-related changes.
 The application was vulnerable to attacks if the attacker had access to the working directory. \
 If you run this in such enviroment you should update ASAP. \
 If your working directory is **not** accessible by unprivileged users you don't need to worry.
+
 ============================================";
 
     assert_eq!(exp_output, output);
