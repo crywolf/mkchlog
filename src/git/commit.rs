@@ -11,7 +11,7 @@ pub struct Commit {
     /// Git commit message
     pub message: String,
     /// Changelog message extracted from the commit message
-    pub changelog_message: String,
+    pub changelog_message: Option<String>,
     /// Raw data of the commit
     pub raw_data: String,
 }
@@ -38,9 +38,12 @@ impl Commit {
             ))?;
 
         let changelog: String = commit_iter.map(|s| s.trim()).collect();
-        if changelog.is_empty() {
-            return Err(format!("Missing 'changelog:' key in commit:\n>>> {}", raw_data).into());
-        }
+        let changelog = if changelog.is_empty() {
+            None
+        } else {
+            //return Err(format!("Missing 'changelog:' key in commit:\n>>> {}", raw_data).into());
+            Some(changelog)
+        };
 
         let commit = Commit {
             header: header.to_owned(),
@@ -50,6 +53,10 @@ impl Commit {
         };
 
         Ok(commit)
+    }
+
+    pub fn is_merge(&self) -> bool {
+        self.header.contains("\nMerge: ")
     }
 }
 
@@ -91,7 +98,7 @@ Date:   Tue Jun 13 16:26:35 2023 +0200";
         let res = Commit::new(raw_data).unwrap();
         assert_eq!(res.header, exp_header);
         assert_eq!(res.message, exp_message);
-        assert_eq!(res.changelog_message, exp_changelog_message);
+        assert_eq!(res.changelog_message.unwrap(), exp_changelog_message);
     }
 
     #[test]
@@ -112,7 +119,7 @@ Date:   Tue Jun 13 16:26:35 2023 +0200";
         let res = Commit::new(raw_data).unwrap();
         assert_eq!(res.header, exp_header);
         assert_eq!(res.message, exp_message);
-        assert_eq!(res.changelog_message, exp_changelog_message);
+        assert_eq!(res.changelog_message.unwrap(), exp_changelog_message);
     }
 
     #[test]
@@ -124,18 +131,7 @@ Date:   Tue Jun 13 16:26:35 2023 +0200
 
     Don't reallocate the buffer when we know its size
 ";
-        let res = Commit::new(raw_data);
-        assert!(res.is_err());
-
-        let exp_err = "\
-Missing 'changelog:' key in commit:
->>> commit 7c85bee4303d56bededdfacf8fbb7bdc68e2195b
-Author: Cry Wolf <cry.wolf@centrum.cz>
-Date:   Tue Jun 13 16:26:35 2023 +0200
-
-    Don't reallocate the buffer when we know its size
-";
-
-        assert_eq!(res.unwrap_err().to_string(), exp_err);
+        let res = Commit::new(raw_data).unwrap();
+        assert!(res.changelog_message.is_none());
     }
 }

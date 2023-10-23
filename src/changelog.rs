@@ -27,10 +27,12 @@ impl Changelog {
         let commits = self.git.commits()?;
 
         // insert changelog entries from commits to changelog_map
-        for commit in commits {
+        for commit in commits.into_iter().filter(|commit| !self.template.skip_merge_commits || !commit.is_merge()) {
             let mut changes = String::new();
 
-            let commit_changelog_data = CommitChangelogData::new(&commit.changelog_message);
+            let changelog = &commit.changelog_message.as_ref()
+                .ok_or_else(|| format!("Missing 'changelog:' key in commit:\n>>> {}", commit.raw_data))?;
+            let commit_changelog_data = CommitChangelogData::new(changelog);
 
             let changelog_lines = commit_changelog_data.changelog_lines();
             if changelog_lines.len() == 1 && changelog_lines[0] == "skip" {

@@ -6,6 +6,7 @@ use std::io::Read;
 /// Template represents parsed YAML config file
 #[derive(Debug)]
 pub struct Template {
+    pub skip_merge_commits: bool,
     changelog_map: ChangelogMap,
 }
 
@@ -24,6 +25,7 @@ impl Template {
         };
 
         let mut template = Self {
+            skip_merge_commits: false,
             changelog_map: ChangelogMap::new(),
         };
         template.parse_config(config)?;
@@ -39,6 +41,12 @@ impl Template {
             Some(v) => v,
             None => return Err("Missing 'sections' key in config file".into()),
         };
+
+        self.skip_merge_commits = yaml
+            .get("skip-merge-commits")
+            .map(|value| value.as_bool().ok_or("Invalid value in skip-merge-commits"))
+            .transpose()?
+            .unwrap_or(false);
 
         let tmpl_sections = tmpl_sections_key
             .as_mapping()

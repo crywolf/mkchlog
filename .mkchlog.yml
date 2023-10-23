@@ -1,4 +1,4 @@
-# Possibly general settings here, probably none in the initial version
+skip-merge-commits: true
 
 sections:
     # section identifier selected by project maintainer
