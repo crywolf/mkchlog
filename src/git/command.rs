@@ -19,7 +19,11 @@ impl GitLogCmd {
 impl super::GitLogCommand for GitLogCmd {
     fn get_log(&self) -> Result<String, Box<dyn Error>> {
         let mut git_command = std::process::Command::new("git");
-        git_command.arg("-C").arg(&self.path).arg("log");
+        git_command
+            .arg("-C")
+            .arg(&self.path)
+            .arg("log")
+            .arg("--no-merges");
 
         if self.commit_id.is_some() {
             // add argument: git log 7c85bee4303d56bededdfacf8fbb7bdc68e2195b..HEAD

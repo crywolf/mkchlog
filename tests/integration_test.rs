@@ -12,6 +12,39 @@ const YAML_FILE: &str = "tests/mkchlog.yml";
 fn it_produces_correct_output() {
     let mocked_log = String::from(
         "\
+commit cdbfeb9b2576e07f12da569c54f5ec3cd7b9c0fc
+Author: Vojtěch Toman <cry.wolf@centrum.cz>
+Date:   Sun Oct 22 23:08:57 2023 +0200
+
+    Allow configuring commit ID in yaml
+
+    This adds a field `skip-commits-up-to` into top level of yaml config so
+    that users don't have to remember what to supply in `-c` argument every
+    time.
+
+    changelog:
+        section: features
+        inherit: all
+
+commit 624c947820cba6c0665b84bfc139f209277f2a95
+Author: Martin Habovstiak <martin.habovstiak@gmail.com>
+Date:   Sat Oct 21 19:00:27 2023 +0200
+
+    Setup Github Actions
+
+    This configures github actions to test `mkchlog` as well as run it on
+    its own repository. Also moved `.mkchlog.yml`, which was used in test,
+    to `tests/mkchlog.yml` and created custom `.mkchlog.yml` that's used in
+    this project.
+
+    The new `.mkchlog.yml` is heavily inspired by the original example with
+    more sections, so we're more flexible in the future. Includes a section
+    used in this commit. :)
+
+    changelog:
+            section: dev
+            title-is-enough: true
+
 commit 1cc72956df91e2fd8c45e72983c4e1149f1ac3b3
 Author: Cry Wolf <cry.wolf@centrum.cz>
 Date:   Tue Jun 13 16:27:59 2023 +0200
@@ -97,6 +130,10 @@ If your working directory is **not** accessible by unprivileged users you don't 
 
 ## New features
 
+### Allow configuring commit ID in yaml
+
+This adds a field `skip-commits-up-to` into top level of yaml config so that users don't have to remember what to supply in `-c` argument every time.
+
 ### Added ability to skip commits.
 
 This allows commits to be skipped by typing 'changelog: skip' \
@@ -105,6 +142,12 @@ at the end of the commit. This is mainly useful for typo fixes or other things i
 ## Performance improvements
 
 * Improved processing speed by 10%
+
+## Development
+
+Internal development changes
+
+* Setup Github Actions
 
 ============================================";
 
