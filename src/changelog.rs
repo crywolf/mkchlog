@@ -73,10 +73,10 @@ impl Changelog {
                     .map(|s| s.trim())
                     .ok_or("Could not extract 'title' from commit message text")?;
 
-                description = commit_message_iter.next().map(|s| s.trim()).ok_or(format!(
-                    "Could not extract 'description' from commit message text:\n>>> {}",
-                    commit.message
-                ))?;
+                description = commit_message_iter
+                    .next()
+                    .map(|s| s.trim())
+                    .unwrap_or_default();
 
                 // remove hard wrapping (linefeeds) and identation added by git in the description
                 let commit_message_description_lines: Vec<_> =
@@ -86,7 +86,7 @@ impl Changelog {
             }
 
             if !title.is_empty() {
-                if !title_is_enough.is_empty() {
+                if !title_is_enough.is_empty() || description.is_empty() {
                     changes.push_str("* ");
                 } else if !sub_section.is_empty() {
                     changes.push_str("#### ");

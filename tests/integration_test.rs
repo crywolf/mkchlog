@@ -12,8 +12,19 @@ const YAML_FILE: &str = "tests/mkchlog.yml";
 fn it_produces_correct_output() {
     let mocked_log = String::from(
         "\
+commit b532ebcb0a214fbc69a5f5138e43eec14ea1a9dc
+Author: Cry Wolf <cry.wolf@centrum.cz>
+Date:   Tue Oct 24 19:17:09 2023 +0200
+
+    Setup CI
+
+    changelog:
+        section: dev
+        inherit: title
+        title-is-enough: true
+
 commit cdbfeb9b2576e07f12da569c54f5ec3cd7b9c0fc
-Author: Vojtěch Toman <cry.wolf@centrum.cz>
+Author: Cry Wolf <cry.wolf@centrum.cz>
 Date:   Sun Oct 22 23:08:57 2023 +0200
 
     Allow configuring commit ID in yaml
@@ -146,6 +157,8 @@ at the end of the commit. This is mainly useful for typo fixes or other things i
 ## Development
 
 Internal development changes
+
+* Setup CI
 
 * Setup Github Actions
 
@@ -280,9 +293,20 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
 }
 
 #[test]
-fn fails_when_only_one_line_in_commit() {
+fn does_not_fail_when_only_one_line_in_commit() {
     let mocked_log = String::from(
         "\
+commit b532ebcb0a214fbc69a5f5138e43eec14ea1a9dc
+Author: Cry Wolf <cry.wolf@centrum.cz>
+Date:   Tue Oct 24 19:17:09 2023 +0200
+
+    Setup CI
+
+    changelog:
+        section: dev
+        inherit: title
+        title-is-enough: true
+
 commit 62db026b0ead7f0659df10c70e402c70ede5d7dd
 Author: Cry Wolf <cry.wolf@centrum.cz>
 Date:   Tue Jun 13 16:24:22 2023 +0200
@@ -301,10 +325,22 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let template = Template::new(f).unwrap();
     let changelog = Changelog::new(template, git);
 
-    let res = changelog.produce();
-    assert!(res.is_err());
-    assert!(res
-        .unwrap_err()
-        .to_string()
-        .starts_with("Could not extract 'description' from commit message text"));
+    let output = changelog.produce().unwrap();
+
+    let exp_output = "\
+============================================
+
+## New features
+
+* Added ability to skip commits.
+
+## Development
+
+Internal development changes
+
+* Setup CI
+
+============================================";
+
+    assert_eq!(exp_output, output);
 }
