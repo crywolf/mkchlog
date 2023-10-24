@@ -29,13 +29,25 @@ pub fn run(config: config::Config) -> Result<(), Box<dyn std::error::Error>> {
     };
 
     let template = Template::new(f)?;
-    let commit_id = match (config.commit_id, template.skip_commits_up_to.as_ref()) {
+
+    // set value from program arguments or yaml file
+    let commit_id = match (
+        config.commit_id,
+        template.settings.skip_commits_up_to.as_ref(),
+    ) {
         (Some(commit_id), _) => Some(commit_id),
         (None, Some(commit_id)) => Some(commit_id.to_owned()),
         (None, None) => None,
     };
 
-    let git_cmd = Box::new(GitLogCmd::new(config.git_path, commit_id));
+    // set value from program arguments or yaml file
+    let git_path = match (config.git_path, template.settings.git_path.as_ref()) {
+        (Some(git_path), _) => git_path,
+        (_, Some(git_path)) => git_path.to_owned(),
+        (None, None) => std::path::PathBuf::from("./"),
+    };
+
+    let git_cmd = Box::new(GitLogCmd::new(git_path, commit_id));
     let git = Git::new(git_cmd);
 
     let changelog = Changelog::new(template, git);

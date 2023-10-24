@@ -7,7 +7,14 @@ use std::io::Read;
 #[derive(Debug)]
 pub struct Template {
     changelog_map: ChangelogMap,
-    pub(crate) skip_commits_up_to: Option<String>,
+    pub(crate) settings: Settings,
+}
+
+#[derive(Debug)]
+/// Settings represent options that were set in YAML config file
+pub struct Settings {
+    pub skip_commits_up_to: Option<String>,
+    pub git_path: Option<std::path::PathBuf>,
 }
 
 type ChangelogMap = IndexMap<String, Section>;
@@ -33,10 +40,23 @@ impl Template {
             })
             .transpose()?;
 
+        let git_path = config
+            .get("git-path")
+            .map(|v| {
+                v.as_str()
+                    .map(std::path::PathBuf::from)
+                    .ok_or("'git-path' key must be a string")
+            })
+            .transpose()?;
+
         let mut template = Self {
             changelog_map: ChangelogMap::new(),
-            skip_commits_up_to,
+            settings: Settings {
+                skip_commits_up_to,
+                git_path,
+            },
         };
+
         template.parse_config(config)?;
 
         Ok(template)
@@ -217,8 +237,12 @@ sections:
         let template = res.unwrap();
 
         // check for correctly parsed settings
-        let settings = template.skip_commits_up_to.to_owned().unwrap();
-        assert_eq!(settings, "bc58e6bf2cf640d46aa832e297d0f215f76dfce0");
+        let settings = &template.settings;
+
+        assert_eq!(
+            settings.skip_commits_up_to.as_ref().unwrap(),
+            "bc58e6bf2cf640d46aa832e297d0f215f76dfce0"
+        );
 
         // check if parsed template has correct format
         let template_data = template.data();

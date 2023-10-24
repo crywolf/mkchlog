@@ -12,7 +12,7 @@ pub struct Config {
     /// Path to the config (template) file
     pub file_path: std::path::PathBuf,
     /// Path to the git repository
-    pub git_path: std::path::PathBuf,
+    pub git_path: Option<std::path::PathBuf>,
     /// Commit number to start. This one and previous commits will be skipped during processing.
     pub commit_id: Option<String>,
 }
@@ -25,7 +25,7 @@ impl Config {
         Ok(Self {
             command: args.command,
             file_path: args.file_path.unwrap_or(PathBuf::from(".mkchlog.yml")),
-            git_path: args.git_path.unwrap_or(PathBuf::from("./")),
+            git_path: args.git_path, //.unwrap_or(PathBuf::from("./")),
             commit_id: args.commit,
         })
     }

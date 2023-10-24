@@ -22,9 +22,9 @@ The main input is in commit messages.
 `mkchlog gen`
 
 You can provide additional options:
-* Commit number to start. This one and previous commits will be skipped. By default, all commit messages are checked. This option can be also specified in the `.mkchlog.yml`.
+* Commit number to start. This one and previous commits will be skipped. By default, all commit messages are checked. (This option can be also specified in the `.mkchlog.yml`.)
 * Config (template) file name [default value is `.mkchlog.yml`]
-* Path to the git repository [default value is the current directory]
+* Path to the git repository [default value is the current directory]. (This option can be also specified in the `.mkchlog.yml`.)
 
 `mkchlog -c 7c85bee4303d56bededdfacf8fbb7bdc68e2195b -f .mkchlog.yml -g ../git-mkchlog-test/ gen`
 
@@ -35,9 +35,11 @@ Run `mkchlog help` for complete command documentation
 #### Config file
 
 ```yaml
-# When -c flag is not specified and skip-commits-up-to is it works as if the value was passed to -c.
-# When both are specified the argument is used.
+# OPTIONAL Commit number to start (same as -c 7c85bee4303d56bededdfacf8fbb7bdc68e2195b)
 skip-commits-up-to: 7c85bee4303d56bededdfacf8fbb7bdc68e2195b
+
+# OPTIONAL Path to the git repository (same as -g ../git-mkchlog-test/)
+git-path: ../git-mkchlog-test/
 
 sections:
     # section identifier selected by project maintainer
