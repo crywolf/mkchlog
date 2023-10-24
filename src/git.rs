@@ -4,7 +4,6 @@ pub mod command;
 pub mod commit;
 
 use self::commit::Commit;
-use regex::Regex;
 use std::error::Error;
 
 /// Trait that represents the `git log` command functionality
@@ -28,26 +27,24 @@ impl Git {
     pub fn commits(&self) -> Result<Vec<Commit>, Box<dyn Error>> {
         let git_log = self.git_log_cmd.get_log()?;
 
-        let commit_regex = Regex::new(r"(?m)^commit [a-z|\d]{40}$").expect("should never panic");
+        let mut commits = Vec::new();
+        let mut pos = 0;
+        loop {
+            let end = git_log[(pos+1)..].find("\ncommit ");
+            let copy_up_to = match end {
+                Some(end) => pos + 1 + end,
+                None => git_log.len(),
+            };
+            let commit = Commit::new(&git_log[pos..copy_up_to])?;
+            commits.push(commit);
+            if end.is_none() {
+                break;
+            } else {
+                pos = copy_up_to;
+            }
+        }
 
-        let mut matches = commit_regex.find_iter(&git_log); // matches all lines with commit numbers
-
-        let commits: Result<Vec<Commit>, _> = commit_regex
-            .split(&git_log) // split by lines with commit numbers-
-            .skip(1) // first element is empty
-            .map(|s| {
-                let m = matches
-                    .next() // get line with commit number and prepend it to the raw commit data
-                    .ok_or("Could not parse git log output (commit number)")?;
-
-                let mut r = m.as_str().to_owned();
-                r.push_str(s);
-
-                Commit::new(&r)
-            })
-            .collect();
-
-        commits
+        Ok(commits)
     }
 }
 

@@ -22,3 +22,5 @@ jobs:
         uses: dtolnay/rust-toolchain@1.63.0
       - name: Test mkchlog on MSRV
         run: cargo +1.63.0 test
+      - name: Check wasm bindings
+        run: cargo +1.63.0 check --manifest-path wasm/Cargo.toml
