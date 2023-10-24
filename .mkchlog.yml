@@ -1,4 +1,4 @@
-# Possibly general settings here, probably none in the initial version
+skip-commits-up-to: bc58e6bf2cf640d46aa832e297d0f215f76dfce0
 
 sections:
     # section identifier selected by project maintainer

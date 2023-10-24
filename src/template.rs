@@ -7,6 +7,7 @@ use std::io::Read;
 #[derive(Debug)]
 pub struct Template {
     changelog_map: ChangelogMap,
+    pub(crate) skip_commits_up_to: Option<String>,
 }
 
 type ChangelogMap = IndexMap<String, Section>;
@@ -23,8 +24,18 @@ impl Template {
             Err(err) => return Err(format!("Error parsing config YAML file: {}", err).into()),
         };
 
+        let skip_commits_up_to = config
+            .get("skip-commits-up-to")
+            .map(|v| {
+                v.as_str()
+                    .map(ToOwned::to_owned)
+                    .ok_or("'skip-commits-up-to' key must be a string")
+            })
+            .transpose()?;
+
         let mut template = Self {
             changelog_map: ChangelogMap::new(),
+            skip_commits_up_to,
         };
         template.parse_config(config)?;
 
@@ -173,7 +184,7 @@ mod tests {
 
         let f = FileReaderMock::new(
             "\
-# Possibly general settings here, probably none in the initial version
+skip-commits-up-to: bc58e6bf2cf640d46aa832e297d0f215f76dfce0
 
 sections:
     # section identifier selected by project maintainer
@@ -203,8 +214,14 @@ sections:
         let res = Template::new(f);
         assert!(res.is_ok());
 
+        let template = res.unwrap();
+
+        // check for correctly parsed settings
+        let settings = template.skip_commits_up_to.to_owned().unwrap();
+        assert_eq!(settings, "bc58e6bf2cf640d46aa832e297d0f215f76dfce0");
+
         // check if parsed template has correct format
-        let template_data = res.unwrap().data();
+        let template_data = template.data();
 
         let exp_keys = template_data.keys().collect::<Vec<_>>();
         assert_eq!(exp_keys.len(), 6);
