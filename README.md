@@ -61,7 +61,7 @@ sections:
 #### Commits
 
 ```
-Added ability to skip commits.
+Add ability to skip commits
 
 This allows commits to be skipped by typing changelog: skip
 at the end of the commit. This is mainly useful for typo
@@ -73,7 +73,7 @@ changelog:
 ```
 
 ```
-Fixed grammar mistakes.
+Fix grammar mistakes
 
 We found 42 grammar mistakes that are fixed in this commit.
 
@@ -88,12 +88,12 @@ Avoiding allocations like this introduces 10% speedup.
 
 changelog:
     section: perf
-    title: Improved processing speed by 10%
+    title: Improve processing speed by 10%
     title-is-enough: true
 ```
 
 ```
-Fixed TOCTOU race condition when opening file
+Fix TOCTOU race condition when opening file
 
 Previously we checked the file permissions before opening
 the file now we check the metadata using file descriptor
@@ -101,7 +101,7 @@ after opening the file. (before reading)
 
 changelog:
     section: security:vuln_fixes
-    title: Fixed vulnerability related to opening files
+    title: Fix vulnerability related to opening files
     description: The application was vulnerable to attacks
                  if the attacker had access to the working
                  directory. If you run this in such
@@ -143,7 +143,7 @@ This section contains very important security-related changes.
 
 ### Fixed vulnerabilities
 
-#### Fixed vulnerability related to opening files
+#### Fix vulnerability related to opening files
 
 The application was vulnerable to attacks if the attacker had access to the working directory. If you run this in such enviroment you should update ASAP. If your working directory is **not** accessible by unprivileged users you don't need to worry.
 
@@ -153,20 +153,19 @@ The application was vulnerable to attacks if the attacker had access to the work
 
 This adds a field `skip-commits-up-to` into top level of yaml config so that users don't have to remember what to supply in `-c` argument every time.
 
-### Added ability to skip commits.
+### Add ability to skip commits
 
 This allows commits to be skipped by typing changelog: skip at the end of the commit. This is mainly useful for typo fixes or other things irrelevant to the user of a project.
 
 ## Performance improvements
 
-* Improved processing speed by 10%
+* Improve processing speed by 10%
 
 ## Development
 
 Internal development changes
 
 * Setup Github Actions
-*****
 ```
 
 ### Explanation
