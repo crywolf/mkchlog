@@ -202,3 +202,8 @@ This is based on these experiences:
   CI complaining about missing information prevents forgetting.
 
 Additionally, we don't want to depend on GitHub so that we can migrate easily if needed - thus not pulling information from PRs.
+
+### MSRV
+
+The minimal supported Rust version is 1.63 - Debian Bookworm.
+This also supports using the crates packaged in Debian - just delete `Cargo.lock` (which contains crates.io shasums of crates - some are slightly different in Debian).

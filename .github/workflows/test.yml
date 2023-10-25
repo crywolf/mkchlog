@@ -17,3 +17,8 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       - name: Test mkchlog
         run: cargo test
+      - name: Checkout MSRV toolchain
+        # https://github.com/dtolnay/rust-toolchain
+        uses: dtolnay/rust-toolchain@1.63.0
+      - name: Test mkchlog on MSRV
+        run: cargo +1.63.0 test
