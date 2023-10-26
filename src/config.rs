@@ -59,4 +59,7 @@ pub enum Command {
     /// Process git history and output the changelog in markdown format
     #[command(name = "gen")]
     Generate,
+    /// Initialize GitHub action using a standard template
+    #[command(name = "init-gha")]
+    InitGhAction,
 }
