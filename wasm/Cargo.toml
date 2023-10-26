@@ -1,0 +1,14 @@
+[package]
+name = "libmkchlog"
+version = "0.1.0"
+authors = ["Martin Habovstiak <martin.habovstiak@gmail.com>"]
+edition = "2021"
+rust-version = "1.63"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+mkchlog = { path = ".." }
+wasm-bindgen = "0.2.83"
+js-sys = "0.3.60"

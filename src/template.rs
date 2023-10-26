@@ -8,7 +8,7 @@ use serde_yaml::Value;
 #[derive(Debug)]
 pub struct Template {
     changelog_map: ChangelogMap,
-    pub(crate) settings: Settings,
+    pub settings: Settings,
 }
 
 #[derive(Debug)]
@@ -27,7 +27,11 @@ impl Template {
         let mut config_yml = String::new();
         file.read_to_string(&mut config_yml)?;
 
-        let config: Yaml = match serde_yaml::from_str(&config_yml) {
+        Self::from_str(&config_yml)
+    }
+
+    pub fn from_str(config_yml: &str) -> Result<Self, Box<dyn Error>> {
+        let config: Yaml = match serde_yaml::from_str(config_yml) {
             Ok(config) => config,
             Err(err) => return Err(format!("Error parsing config YAML file: {}", err).into()),
         };
