@@ -27,6 +27,9 @@ impl Git {
     pub fn commits(&self) -> Result<Vec<Commit>, Box<dyn Error>> {
         let git_log = self.git_log_cmd.get_log()?;
 
+        // NB: `Regex::new(r"(?m)^commit [a-z|\d]{40}$")` was previously used to split the commits
+        // however for some unknown reason it would cause `npm` to silently exit with success code when ran in WASM.
+        // This workarounds the issue.
         let mut commits = Vec::new();
         let mut pos = 0;
         loop {
