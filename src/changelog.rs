@@ -1,6 +1,7 @@
 //! Changelog creation logic
 
 use crate::git::Git;
+use crate::template::ChangeType;
 use crate::template::Template;
 use regex::Regex;
 use std::error::Error;
@@ -28,8 +29,6 @@ impl Changelog {
 
         // insert changelog entries from commits to changelog_map
         for commit in commits {
-            let mut changes = String::new();
-
             let commit_changelog_data = CommitChangelogData::new(&commit.changelog_message);
 
             let changelog_lines = commit_changelog_data.changelog_lines();
@@ -85,21 +84,28 @@ impl Changelog {
                 description = &commit_message_description;
             }
 
+            // we have title and description, we can insert them to changelog_map
+            let title_prefix: &str;
+            let mut change_type = ChangeType::Other;
+            let mut change = String::new();
+
             if !title.is_empty() {
                 if !title_is_enough.is_empty() || description.is_empty() {
-                    changes.push_str("* ");
+                    change_type = ChangeType::TitleOnly;
+                    title_prefix = "* ";
                 } else if !sub_section.is_empty() {
-                    changes.push_str("#### ");
+                    title_prefix = "#### ";
                 } else {
-                    changes.push_str("### ");
+                    title_prefix = "### ";
                 }
-                changes.push_str(title);
-                changes.push_str("\n\n");
+                change = title_prefix.to_owned();
+                change.push_str(title);
+                change.push_str("\n\n");
             }
 
             if !description.is_empty() && title_is_enough.is_empty() {
-                changes.push_str(description);
-                changes.push_str("\n\n");
+                change.push_str(description);
+                change.push_str("\n\n");
             }
 
             if !sub_section.is_empty() {
@@ -110,17 +116,17 @@ impl Changelog {
                     .get_mut(sub_section)
                     .expect("sub_section is not empty here")
                     .changes
-                    .push_str(changes.as_str());
+                    .add(change_type, change);
             } else {
                 changelog_map
                     .get_mut(section)
                     .expect("section should be set correctly")
                     .changes
-                    .push_str(changes.as_str());
+                    .add(change_type, change);
             }
         }
 
-        // format changelog output
+        // use prepared changelog_map and format changelog output
         let mut buff = String::new();
         buff.push_str("============================================\n\n");
 
@@ -146,7 +152,7 @@ impl Changelog {
             }
 
             if !sec.changes.is_empty() {
-                buff.push_str(&sec.changes);
+                buff.push_str(&sec.changes.to_string());
             }
 
             if !sec.subsections.is_empty() {
@@ -161,7 +167,8 @@ impl Changelog {
                             buff.push_str("\n\n");
                         }
                     }
-                    buff.push_str(&subsec.changes);
+
+                    buff.push_str(&subsec.changes.to_string());
                 }
             }
         }

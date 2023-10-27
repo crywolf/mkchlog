@@ -37,6 +37,24 @@ Date:   Sun Oct 22 23:08:57 2023 +0200
         section: features
         inherit: all
 
+commit 22e27ce785698c4a873eb5e2ad9e0cf9c849be8d
+Author: Martin Habovstiak <martin.habovstiak@gmail.com>
+Date:   Sun Oct 22 09:12:50 2023 +0200
+
+    Support building on Debian Bookworm
+
+    This change lowers the requirements for dependencies so that the code
+    compiles on Rust 1.63 which is in Debian Bookworm. Further, the
+    dependencies are lowered such that the packages vendored in Debian
+    Bookworm can be used directly.
+
+    This uses version ranges so that the newest crates can still be used
+    (they didn't break our code).
+
+    changelog:
+        section: features
+        title-is-enough: true
+
 commit 624c947820cba6c0665b84bfc139f209277f2a95
 Author: Martin Habovstiak <martin.habovstiak@gmail.com>
 Date:   Sat Oct 21 19:00:27 2023 +0200
@@ -141,6 +159,8 @@ If your working directory is **not** accessible by unprivileged users you don't 
 
 ## New features
 
+* Support building on Debian Bookworm
+
 ### Allow configuring commit ID in yaml
 
 This adds a field `skip-commits-up-to` into top level of yaml config so that users don't have to remember what to supply in `-c` argument every time.
@@ -217,6 +237,87 @@ This section contains very important security-related changes.
 The application was vulnerable to attacks if the attacker had access to the working directory. \
 If you run this in such enviroment you should update ASAP. \
 If your working directory is **not** accessible by unprivileged users you don't need to worry.
+
+============================================";
+
+    assert_eq!(exp_output, output);
+}
+
+#[test]
+fn commits_with_title_only_shoud_be_printed_before_commits_with_description() {
+    let mocked_log = String::from(
+        "\
+commit cdbfeb9b2576e07f12da569c54f5ec3cd7b9c0fc
+Author: Cry Wolf <cry.wolf@centrum.cz>
+Date:   Sun Oct 22 23:08:57 2023 +0200
+
+    Allow configuring commit ID in yaml
+
+    This adds a field `skip-commits-up-to` into top level of yaml config so
+    that users don't have to remember what to supply in `-c` argument every
+    time.
+
+    changelog:
+        section: features
+        inherit: all
+
+commit 22e27ce785698c4a873eb5e2ad9e0cf9c849be8d
+Author: Martin Habovstiak <martin.habovstiak@gmail.com>
+Date:   Sun Oct 22 09:12:50 2023 +0200
+
+    Support building on Debian Bookworm
+
+    This change lowers the requirements for dependencies so that the code
+    compiles on Rust 1.63 which is in Debian Bookworm. Further, the
+    dependencies are lowered such that the packages vendored in Debian
+    Bookworm can be used directly.
+
+    This uses version ranges so that the newest crates can still be used
+    (they didn't break our code).
+
+    changelog:
+            section: features
+            title-is-enough: true
+
+commit 62db026b0ead7f0659df10c70e402c70ede5d7dd
+Author: Cry Wolf <cry.wolf@centrum.cz>
+Date:   Tue Jun 13 16:24:22 2023 +0200
+
+    Added ability to skip commits.
+
+    This allows commits to be skipped by typing 'changelog: skip'
+    at the end of the commit. This is mainly useful for typo
+    fixes or other things irrelevant to the user of a project.
+
+    changelog:
+        inherit: all
+        section: features",
+    );
+
+    let git_cmd = Box::new(GitCmdMock::new(mocked_log));
+    let git = Git::new(git_cmd);
+
+    let f = File::open(YAML_FILE).unwrap();
+    let template = Template::new(f).unwrap();
+    let changelog = Changelog::new(template, git);
+
+    let output = changelog.produce().unwrap();
+
+    let exp_output = "\
+============================================
+
+## New features
+
+* Support building on Debian Bookworm
+
+### Allow configuring commit ID in yaml
+
+This adds a field `skip-commits-up-to` into top level of yaml config so that users don't have to remember what to supply in `-c` argument every time.
+
+### Added ability to skip commits.
+
+This allows commits to be skipped by typing 'changelog: skip' \
+at the end of the commit. This is mainly useful for typo fixes or other things irrelevant to the user of a project.
 
 ============================================";
 

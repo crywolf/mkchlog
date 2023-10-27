@@ -1,8 +1,9 @@
 //! Template represents parsed YAML config file
 use indexmap::IndexMap;
+use serde_yaml::Value;
+use std::collections::HashMap;
 use std::error::Error;
 use std::io::Read;
-use serde_yaml::Value;
 
 /// Template represents parsed YAML config file
 #[derive(Debug)]
@@ -11,8 +12,8 @@ pub struct Template {
     pub settings: Settings,
 }
 
-#[derive(Debug)]
 /// Settings represent options that were set in YAML config file
+#[derive(Debug)]
 pub struct Settings {
     pub skip_commits_up_to: Option<String>,
     pub git_path: Option<std::path::PathBuf>,
@@ -68,7 +69,7 @@ impl Template {
     }
 
     /// Validates template data extracted from the configuration (template) file
-    /// and prepares data structure for storing changelog data
+    /// and prepares data structure for storing changelog data.
     fn parse_config(&mut self, yaml: Yaml) -> Result<(), Box<dyn Error>> {
         // parsing template YAML data
         let tmpl_sections_key = match yaml.get("sections") {
@@ -107,7 +108,7 @@ impl Template {
                 title: title.to_string(),
                 description: description.to_string(),
                 subsections: IndexMap::new(),
-                changes: String::new(),
+                changes: Changes::new(),
             };
 
             if let Some(subsections) = val.get(&Value::from("subsections")) {
@@ -150,7 +151,7 @@ impl Template {
                                 title: title.to_string(),
                                 description: description.to_string(),
                                 subsections: IndexMap::new(),
-                                changes: String::new(),
+                                changes: Changes::new(),
                             },
                         ))
                     })
@@ -176,12 +177,84 @@ pub struct Section {
     pub title: String,
     pub description: String,
     pub subsections: IndexMap<String, Section>,
-    pub changes: String,
+    pub changes: Changes,
+}
+
+/// Type of the changelog item
+#[derive(Hash, PartialEq, Eq, Debug, Clone)]
+pub enum ChangeType {
+    /// Changelog item with title only
+    TitleOnly,
+    /// Changelog item with title and description
+    Other,
+}
+
+/// List of changelog items in one section
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Changes {
+    pub changes: HashMap<ChangeType, Vec<String>>,
+}
+
+impl Changes {
+    /// Returns new list of changelog items.
+    pub fn new() -> Changes {
+        Self {
+            changes: HashMap::from([(ChangeType::TitleOnly, vec![]), (ChangeType::Other, vec![])]),
+        }
+    }
+
+    /// Adds new item to the list of changes.
+    pub fn add(&mut self, change_type: ChangeType, content: String) {
+        if let Some(v) = self.changes.get_mut(&change_type) {
+            v.push(content);
+        };
+    }
+
+    /// Returns `true` if the list of changes contains no elements.
+    pub fn is_empty(&self) -> bool {
+        self.changes
+            .get(&ChangeType::TitleOnly)
+            .expect("HashMap has all keys initialized")
+            .is_empty()
+            && self
+                .changes
+                .get(&ChangeType::Other)
+                .expect("HashMap has all keys initialized")
+                .is_empty()
+    }
+}
+
+impl Default for Changes {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+use std::fmt;
+impl fmt::Display for Changes {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut only_title = String::new();
+        if let Some(v) = self.changes.get(&ChangeType::TitleOnly) {
+            only_title = v.concat();
+        }
+
+        let mut other = String::new();
+        if let Some(v) = self.changes.get(&ChangeType::Other) {
+            other = v.concat();
+        }
+
+        let mut result = String::new();
+        result.push_str(&only_title);
+        result.push_str(&other);
+
+        write!(f, "{}", result)
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::Template;
+    use crate::template::Changes;
     use std::io::Cursor;
 
     pub struct FileReaderMock {
@@ -277,7 +350,7 @@ sections:
                 title: "Fixed vulnerabilities".to_owned(),
                 description: "".to_owned(),
                 subsections: IndexMap::new(),
-                changes: "".to_owned(),
+                changes: Changes::new(),
             },
         );
         assert_eq!(
@@ -287,7 +360,7 @@ sections:
                 description: "This section contains very important security-related changes."
                     .to_owned(),
                 subsections: subsecs,
-                changes: "".to_owned(),
+                changes: Changes::new(),
             }
         );
 
@@ -298,7 +371,7 @@ sections:
                 title: "New features".to_owned(),
                 description: "".to_owned(),
                 subsections: IndexMap::new(),
-                changes: "".to_owned(),
+                changes: Changes::new(),
             }
         );
 
@@ -309,7 +382,7 @@ sections:
                 title: "Development".to_owned(),
                 description: "Internal development changes".to_owned(),
                 subsections: IndexMap::new(),
-                changes: "".to_owned(),
+                changes: Changes::new(),
             }
         );
     }
