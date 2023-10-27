@@ -17,13 +17,14 @@ pub fn check(config: &str, git_callback: js_sys::Function) -> Result<(), JsValue
 
 fn run(config: &str, git_callback: js_sys::Function) -> Result<(), Box<dyn std::error::Error>> {
     use mkchlog::changelog::Changelog;
+    use mkchlog::changelog::Changes;
     use mkchlog::template::Template;
 
-    let template = Template::from_str(config)?;
+    let template = Template::<Changes>::from_str(config)?;
 
     let git_cmd = GitCmd {
         callback: git_callback,
-        commit_id: template.settings.skip_commits_up_to.clone()
+        commit_id: template.settings.skip_commits_up_to.clone(),
     };
     let git_cmd = Box::new(git_cmd);
     let git = mkchlog::git::Git::new(git_cmd);
@@ -48,7 +49,12 @@ impl mkchlog::git::GitLogCommand for GitCmd {
             args.push(&JsValue::from(format!("{}..HEAD", commit_id)));
         }
         let args = JsValue::from(args);
-        let result = self.callback.call1(&JsValue::null(), &args).map_err(|error| format!("{:?}", error))?;
-        result.as_string().ok_or_else(|| "The value returned by closure is not a string".into())
+        let result = self
+            .callback
+            .call1(&JsValue::null(), &args)
+            .map_err(|error| format!("{:?}", error))?;
+        result
+            .as_string()
+            .ok_or_else(|| "The value returned by closure is not a string".into())
     }
 }
