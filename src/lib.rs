@@ -28,7 +28,7 @@ pub fn run(config: config::Config) -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
-    let template = Template::new(f)?;
+    let template = Template::<changelog::Changes>::new(f)?;
 
     // set value from program arguments or yaml file
     let commit_id = match (

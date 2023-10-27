@@ -1,14 +1,13 @@
 //! Template represents parsed YAML config file
 use indexmap::IndexMap;
 use serde_yaml::Value;
-use std::collections::HashMap;
 use std::error::Error;
 use std::io::Read;
 
 /// Template represents parsed YAML config file
 #[derive(Debug)]
-pub struct Template {
-    changelog_map: ChangelogMap,
+pub struct Template<T: Default> {
+    changelog_map: ChangelogMap<T>,
     pub settings: Settings,
 }
 
@@ -19,10 +18,10 @@ pub struct Settings {
     pub git_path: Option<std::path::PathBuf>,
 }
 
-type ChangelogMap = IndexMap<String, Section>;
+type ChangelogMap<T> = IndexMap<String, Section<T>>;
 type Yaml = serde_yaml::Value;
 
-impl Template {
+impl<T: Default + Clone> Template<T> {
     /// Parses the config (template) YAML file and returns the initialized template object.
     pub fn new(mut file: impl Read) -> Result<Self, Box<dyn Error>> {
         let mut config_yml = String::new();
@@ -108,14 +107,14 @@ impl Template {
                 title: title.to_string(),
                 description: description.to_string(),
                 subsections: IndexMap::new(),
-                changes: Changes::new(),
+                changes: T::default(),
             };
 
             if let Some(subsections) = val.get(&Value::from("subsections")) {
                 let mut sub_section_map = IndexMap::<String, String>::new();
                 sub_section_map.insert("title".to_string(), title.to_string());
 
-                let subsections_map: Result<IndexMap<String, Section>, String> = subsections
+                let subsections_map: Result<IndexMap<String, Section<T>>, String> = subsections
                     .as_mapping()
                     .ok_or(format!(
                         "Invalid subsections format in section {} in config file",
@@ -151,7 +150,7 @@ impl Template {
                                 title: title.to_string(),
                                 description: description.to_string(),
                                 subsections: IndexMap::new(),
-                                changes: Changes::new(),
+                                changes: T::default(),
                             },
                         ))
                     })
@@ -166,95 +165,24 @@ impl Template {
     }
 
     /// Returns data structure with initialized sections for storing changelog data.
-    pub fn data(&self) -> ChangelogMap {
+    pub fn data(&self) -> ChangelogMap<T> {
         self.changelog_map.clone()
     }
 }
 
 /// Data structure to store changelog section data
 #[derive(Debug, Clone, PartialEq)]
-pub struct Section {
+pub struct Section<T: Default> {
     pub title: String,
     pub description: String,
-    pub subsections: IndexMap<String, Section>,
-    pub changes: Changes,
-}
-
-/// Type of the changelog item
-#[derive(Hash, PartialEq, Eq, Debug, Clone)]
-pub enum ChangeType {
-    /// Changelog item with title only
-    TitleOnly,
-    /// Changelog item with title and description
-    Other,
-}
-
-/// List of changelog items in one section
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Changes {
-    pub changes: HashMap<ChangeType, Vec<String>>,
-}
-
-impl Changes {
-    /// Returns new list of changelog items.
-    pub fn new() -> Changes {
-        Self {
-            changes: HashMap::from([(ChangeType::TitleOnly, vec![]), (ChangeType::Other, vec![])]),
-        }
-    }
-
-    /// Adds new item to the list of changes.
-    pub fn add(&mut self, change_type: ChangeType, content: String) {
-        if let Some(v) = self.changes.get_mut(&change_type) {
-            v.push(content);
-        };
-    }
-
-    /// Returns `true` if the list of changes contains no elements.
-    pub fn is_empty(&self) -> bool {
-        self.changes
-            .get(&ChangeType::TitleOnly)
-            .expect("HashMap has all keys initialized")
-            .is_empty()
-            && self
-                .changes
-                .get(&ChangeType::Other)
-                .expect("HashMap has all keys initialized")
-                .is_empty()
-    }
-}
-
-impl Default for Changes {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-use std::fmt;
-impl fmt::Display for Changes {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut only_title = String::new();
-        if let Some(v) = self.changes.get(&ChangeType::TitleOnly) {
-            only_title = v.concat();
-        }
-
-        let mut other = String::new();
-        if let Some(v) = self.changes.get(&ChangeType::Other) {
-            other = v.concat();
-        }
-
-        let mut result = String::new();
-        result.push_str(&only_title);
-        result.push_str(&other);
-
-        write!(f, "{}", result)
-    }
+    pub subsections: IndexMap<String, Section<T>>,
+    pub changes: T,
 }
 
 #[cfg(test)]
 mod tests {
     use super::Template;
-    use crate::template::Changes;
+    use crate::changelog::Changes;
     use std::io::Cursor;
 
     pub struct FileReaderMock {
@@ -350,7 +278,7 @@ sections:
                 title: "Fixed vulnerabilities".to_owned(),
                 description: "".to_owned(),
                 subsections: IndexMap::new(),
-                changes: Changes::new(),
+                changes: Changes::default(),
             },
         );
         assert_eq!(
@@ -360,7 +288,7 @@ sections:
                 description: "This section contains very important security-related changes."
                     .to_owned(),
                 subsections: subsecs,
-                changes: Changes::new(),
+                changes: Changes::default(),
             }
         );
 
@@ -371,7 +299,7 @@ sections:
                 title: "New features".to_owned(),
                 description: "".to_owned(),
                 subsections: IndexMap::new(),
-                changes: Changes::new(),
+                changes: Changes::default(),
             }
         );
 
@@ -382,7 +310,7 @@ sections:
                 title: "Development".to_owned(),
                 description: "Internal development changes".to_owned(),
                 subsections: IndexMap::new(),
-                changes: Changes::new(),
+                changes: Changes::default(),
             }
         );
     }
@@ -391,11 +319,11 @@ sections:
     fn template_malformed_yaml() {
         let f = FileReaderMock::new(
             "\
-features: title: New features
-perf:
-    title: Performance improvements",
+    features: title: New features
+    perf:
+        title: Performance improvements",
         );
-        let res = Template::new(f);
+        let res = Template::<Changes>::new(f);
 
         assert!(res.is_err());
         assert!(res
@@ -413,7 +341,7 @@ features:
 perf:
     title: Performance improvements",
         );
-        let res = Template::new(f);
+        let res = Template::<Changes>::new(f);
 
         assert!(res.is_err());
         assert!(res
@@ -433,7 +361,7 @@ sekciones:
         title: Performance improvements",
         );
 
-        let res = Template::new(f);
+        let res = Template::<Changes>::new(f);
         assert!(res.is_err());
         assert_eq!(
             res.unwrap_err().to_string(),
@@ -449,7 +377,7 @@ sections: [whatever]
 ",
         );
 
-        let res = Template::new(f);
+        let res = Template::<Changes>::new(f);
         assert!(res.is_err());
         assert_eq!(
             res.unwrap_err().to_string(),
@@ -468,7 +396,7 @@ sections:
         title: Performance improvements",
         );
 
-        let res = Template::new(f);
+        let res = Template::<Changes>::new(f);
         assert!(res.is_err());
         assert_eq!(
             res.unwrap_err().to_string(),
@@ -487,7 +415,7 @@ sections:
         title: [Performance improvements]",
         );
 
-        let res = Template::new(f);
+        let res = Template::<Changes>::new(f);
         assert!(res.is_err());
         assert_eq!(
             res.unwrap_err().to_string(),

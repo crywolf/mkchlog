@@ -1,5 +1,6 @@
 mod mocks;
 
+use mkchlog::changelog;
 use mkchlog::changelog::Changelog;
 use mkchlog::git::Git;
 use mkchlog::template::Template;
@@ -137,7 +138,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let git = Git::new(git_cmd);
 
     let f = File::open(YAML_FILE).unwrap();
-    let template = Template::new(f).unwrap();
+    let template = Template::<changelog::Changes>::new(f).unwrap();
     let changelog = Changelog::new(template, git);
 
     let output = changelog.produce().unwrap();
@@ -218,7 +219,7 @@ Date:   Tue Jun 13 16:27:59 2023 +0200
     let git = Git::new(git_cmd);
 
     let f = File::open(YAML_FILE).unwrap();
-    let template = Template::new(f).unwrap();
+    let template = Template::<changelog::Changes>::new(f).unwrap();
     let changelog = Changelog::new(template, git);
 
     let output = changelog.produce().unwrap();
@@ -298,7 +299,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let git = Git::new(git_cmd);
 
     let f = File::open(YAML_FILE).unwrap();
-    let template = Template::new(f).unwrap();
+    let template = Template::<changelog::Changes>::new(f).unwrap();
     let changelog = Changelog::new(template, git);
 
     let output = changelog.produce().unwrap();
@@ -347,7 +348,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let git = Git::new(git_cmd);
 
     let f = File::open(YAML_FILE).unwrap();
-    let template = Template::new(f).unwrap();
+    let template = Template::<changelog::Changes>::new(f).unwrap();
     let changelog = Changelog::new(template, git);
 
     let res = changelog.produce();
@@ -381,7 +382,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let git = Git::new(git_cmd);
 
     let f = File::open(YAML_FILE).unwrap();
-    let template = Template::new(f).unwrap();
+    let template = Template::<changelog::Changes>::new(f).unwrap();
     let changelog = Changelog::new(template, git);
 
     let res = changelog.produce();
@@ -423,7 +424,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let git = Git::new(git_cmd);
 
     let f = File::open(YAML_FILE).unwrap();
-    let template = Template::new(f).unwrap();
+    let template = Template::<changelog::Changes>::new(f).unwrap();
     let changelog = Changelog::new(template, git);
 
     let output = changelog.produce().unwrap();

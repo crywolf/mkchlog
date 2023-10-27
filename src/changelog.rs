@@ -1,21 +1,25 @@
 //! Changelog creation logic
 
 use crate::git::Git;
-use crate::template::ChangeType;
 use crate::template::Template;
 use regex::Regex;
+use std::collections::HashMap;
 use std::error::Error;
+use std::fmt::Display;
 use std::vec;
 
 /// Represents the generated changelog
-pub struct Changelog {
-    template: Template,
+pub struct Changelog<T: ChangesList + Default> {
+    template: Template<T>,
     git: Git,
 }
 
-impl Changelog {
+impl<T> Changelog<T>
+where
+    T: ChangesList + Default + Display + Clone,
+{
     /// Creates a new [`Changelog`] object. Requires initialized [`Template`] and [`Git`] objects.
-    pub fn new(template: Template, git: Git) -> Self {
+    pub fn new(template: Template<T>, git: Git) -> Self {
         Self { template, git }
     }
 
@@ -228,6 +232,87 @@ impl CommitChangelogData {
             .unwrap_or("")
             .split_once(':')
             .map(|(_, s)| s.trim())
+    }
+}
+
+/// Type of the changelog item
+#[derive(Hash, PartialEq, Eq, Debug, Clone)]
+pub enum ChangeType {
+    /// Changelog item with title only
+    TitleOnly,
+    /// Changelog item with title and description
+    Other,
+}
+
+/// List of changelog items in one section
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Changes {
+    pub changes: HashMap<ChangeType, Vec<String>>,
+}
+
+impl Changes {
+    /// Returns new list of changelog items in one section.
+    fn new() -> Self {
+        Self {
+            changes: HashMap::from([(ChangeType::TitleOnly, vec![]), (ChangeType::Other, vec![])]),
+        }
+    }
+}
+
+pub trait ChangesList {
+    /// Adds new item to the list of changes.
+    fn add(&mut self, change_type: ChangeType, content: String);
+
+    /// Returns `true` if the list of changes contains no elements.
+    fn is_empty(&self) -> bool;
+}
+
+impl ChangesList for Changes {
+    /// Adds new item to the list of changes.
+    fn add(&mut self, change_type: ChangeType, content: String) {
+        if let Some(v) = self.changes.get_mut(&change_type) {
+            v.push(content);
+        };
+    }
+
+    /// Returns `true` if the list of changes contains no elements.
+    fn is_empty(&self) -> bool {
+        self.changes
+            .get(&ChangeType::TitleOnly)
+            .expect("HashMap has all keys initialized")
+            .is_empty()
+            && self
+                .changes
+                .get(&ChangeType::Other)
+                .expect("HashMap has all keys initialized")
+                .is_empty()
+    }
+}
+
+impl Default for Changes {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+use std::fmt;
+impl fmt::Display for Changes {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut only_title = String::new();
+        if let Some(v) = self.changes.get(&ChangeType::TitleOnly) {
+            only_title = v.concat();
+        }
+
+        let mut other = String::new();
+        if let Some(v) = self.changes.get(&ChangeType::Other) {
+            other = v.concat();
+        }
+
+        let mut result = String::new();
+        result.push_str(&only_title);
+        result.push_str(&other);
+
+        write!(f, "{}", result)
     }
 }
 
