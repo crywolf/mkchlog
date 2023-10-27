@@ -67,7 +67,10 @@ where
             }
 
             let commit_message_description: String;
-            if inherit == "all" || (!title_is_enough.is_empty() && title.is_empty()) {
+            if inherit == "all"
+                || inherit == "title"
+                || (!title_is_enough.is_empty() && title.is_empty())
+            {
                 let re = Regex::new(r"\n\s*\n").expect("should never panic"); // title is separated by empty line
                 let mut commit_message_iter = re.splitn(&commit.message, 2);
 
@@ -76,16 +79,18 @@ where
                     .map(|s| s.trim())
                     .ok_or("Could not extract 'title' from commit message text")?;
 
-                description = commit_message_iter
-                    .next()
-                    .map(|s| s.trim())
-                    .unwrap_or_default();
+                if description.is_empty() {
+                    description = commit_message_iter
+                        .next()
+                        .map(|s| s.trim())
+                        .unwrap_or_default();
 
-                // remove hard wrapping (linefeeds) and identation added by git in the description
-                let commit_message_description_lines: Vec<_> =
-                    description.lines().map(|s| s.trim()).collect();
-                commit_message_description = commit_message_description_lines.join(" ");
-                description = &commit_message_description;
+                    // remove hard wrapping (linefeeds) and identation added by git in the description
+                    let commit_message_description_lines: Vec<_> =
+                        description.lines().map(|s| s.trim()).collect();
+                    commit_message_description = commit_message_description_lines.join(" ");
+                    description = &commit_message_description;
+                }
             }
 
             // we have title and description, we can insert them to changelog_map

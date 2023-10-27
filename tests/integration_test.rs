@@ -446,3 +446,60 @@ Internal development changes
 
     assert_eq!(exp_output, output);
 }
+
+#[test]
+fn inherit_title_and_description() {
+    let mocked_log = String::from(
+        "\
+commit b532ebcb0a214fbc69a5f5138e43eec14ea1a9dc
+Author: Cry Wolf <cry.wolf@centrum.cz>
+Date:   Tue Oct 24 19:17:09 2023 +0200
+
+    Setup Github Actions
+
+    changelog:
+        section: dev
+        inherit: title
+        description: This configures github actions to test `mkchlog` as well as run it on
+        its own repository.
+
+        The new `.mkchlog.yml` is heavily inspired by the original example with
+        more sections, so we're more flexible in the future.
+
+commit 62db026b0ead7f0659df10c70e402c70ede5d7dd
+Author: Cry Wolf <cry.wolf@centrum.cz>
+Date:   Tue Jun 13 16:24:22 2023 +0200
+
+    Setup CI
+
+    changelog:
+        inherit: all
+        section: dev",
+    );
+
+    let git_cmd = Box::new(GitCmdMock::new(mocked_log));
+    let git = Git::new(git_cmd);
+
+    let f = File::open(YAML_FILE).unwrap();
+    let template = Template::<changelog::Changes>::new(f).unwrap();
+    let changelog = Changelog::new(template, git);
+
+    let output = changelog.produce().unwrap();
+
+    let exp_output = "\
+============================================
+
+## Development
+
+Internal development changes
+
+* Setup CI
+
+### Setup Github Actions
+
+This configures github actions to test `mkchlog` as well as run it on its own repository.  The new `.mkchlog.yml` is heavily inspired by the original example with more sections, so we're more flexible in the future.
+
+============================================";
+
+    assert_eq!(exp_output, output);
+}
