@@ -1,0 +1,6 @@
+#!/bin/sh
+if ! cat "$1" | grep -v '^#' | cargo run -- --from-stdin check ; then
+  >&2 echo "Please follow mkchlog rules"
+  exit 1
+fi
+

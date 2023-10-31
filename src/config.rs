@@ -15,6 +15,8 @@ pub struct Config {
     pub git_path: Option<std::path::PathBuf>,
     /// Commit number to start. This one and previous commits will be skipped during processing.
     pub commit_id: Option<String>,
+    /// Read commit(s) from stdin
+    pub read_from_stdin: bool,
 }
 
 impl Config {
@@ -25,8 +27,9 @@ impl Config {
         Ok(Self {
             command: args.command,
             file_path: args.file_path.unwrap_or(PathBuf::from(".mkchlog.yml")),
-            git_path: args.git_path, //.unwrap_or(PathBuf::from("./")),
+            git_path: args.git_path,
             commit_id: args.commit,
+            read_from_stdin: args.from_stdin,
         })
     }
 }
@@ -46,6 +49,10 @@ struct Args {
     /// Optional commit number. This one and previous commits will be skipped. By default, all commit messages are checked.
     #[arg(short, long)]
     commit: Option<String>,
+
+    /// Read commit(s) from stdin
+    #[arg(long, default_value_t = false)]
+    from_stdin: bool,
 
     #[command(subcommand)]
     command: Command,

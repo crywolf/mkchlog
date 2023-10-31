@@ -2,6 +2,7 @@
 
 pub mod command;
 pub mod commit;
+pub mod stdin;
 
 use self::commit::Commit;
 use std::error::Error;
@@ -33,7 +34,7 @@ impl Git {
         let mut commits = Vec::new();
         let mut pos = 0;
         loop {
-            let end = git_log[(pos+1)..].find("\ncommit ");
+            let end = git_log[(pos + 1)..].find("\ncommit ");
             let copy_up_to = match end {
                 Some(end) => pos + 1 + end,
                 None => git_log.len(),

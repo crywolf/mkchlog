@@ -47,8 +47,14 @@ pub fn run(config: config::Config) -> Result<(), Box<dyn std::error::Error>> {
         (None, None) => std::path::PathBuf::from("./"),
     };
 
-    let git_cmd = Box::new(GitLogCmd::new(git_path, commit_id));
-    let git = Git::new(git_cmd);
+    let git = if config.read_from_stdin {
+        use git::stdin::Stdin;
+        let git_cmd = Box::new(Stdin::new());
+        Git::new(git_cmd)
+    } else {
+        let git_cmd = Box::new(GitLogCmd::new(git_path, commit_id));
+        Git::new(git_cmd)
+    };
 
     let changelog = Changelog::new(template, git);
 
