@@ -1,3 +1,4 @@
+use std::str::FromStr;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -20,7 +21,7 @@ fn run(config: &str, git_callback: js_sys::Function) -> Result<(), Box<dyn std::
     use mkchlog::changelog::Changes;
     use mkchlog::template::Template;
 
-    let template = Template::<Changes>::from_str(config)?;
+    let mut template = Template::<Changes>::from_str(config)?;
 
     let git_cmd = GitCmd {
         callback: git_callback,
@@ -29,7 +30,7 @@ fn run(config: &str, git_callback: js_sys::Function) -> Result<(), Box<dyn std::
     let git_cmd = Box::new(git_cmd);
     let git = mkchlog::git::Git::new(git_cmd);
 
-    let changelog = Changelog::new(template, git);
+    let mut changelog = Changelog::new(&mut template, git);
 
     changelog.generate()?;
     Ok(())

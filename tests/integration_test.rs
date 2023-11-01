@@ -138,8 +138,8 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let git = Git::new(git_cmd);
 
     let f = File::open(YAML_FILE).unwrap();
-    let template = Template::<changelog::Changes>::new(f).unwrap();
-    let changelog = Changelog::new(template, git);
+    let mut template = Template::<changelog::Changes>::new(f).unwrap();
+    let mut changelog = Changelog::new(&mut template, git);
 
     let output = changelog.generate().unwrap();
 
@@ -219,8 +219,8 @@ Date:   Tue Jun 13 16:27:59 2023 +0200
     let git = Git::new(git_cmd);
 
     let f = File::open(YAML_FILE).unwrap();
-    let template = Template::<changelog::Changes>::new(f).unwrap();
-    let changelog = Changelog::new(template, git);
+    let mut template = Template::<changelog::Changes>::new(f).unwrap();
+    let mut changelog = Changelog::new(&mut template, git);
 
     let output = changelog.generate().unwrap();
 
@@ -299,8 +299,8 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let git = Git::new(git_cmd);
 
     let f = File::open(YAML_FILE).unwrap();
-    let template = Template::<changelog::Changes>::new(f).unwrap();
-    let changelog = Changelog::new(template, git);
+    let mut template = Template::<changelog::Changes>::new(f).unwrap();
+    let mut changelog = Changelog::new(&mut template, git);
 
     let output = changelog.generate().unwrap();
 
@@ -348,8 +348,8 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let git = Git::new(git_cmd);
 
     let f = File::open(YAML_FILE).unwrap();
-    let template = Template::<changelog::Changes>::new(f).unwrap();
-    let changelog = Changelog::new(template, git);
+    let mut template = Template::<changelog::Changes>::new(f).unwrap();
+    let mut changelog = Changelog::new(&mut template, git);
 
     let res = changelog.generate();
 
@@ -382,8 +382,8 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let git = Git::new(git_cmd);
 
     let f = File::open(YAML_FILE).unwrap();
-    let template = Template::<changelog::Changes>::new(f).unwrap();
-    let changelog = Changelog::new(template, git);
+    let mut template = Template::<changelog::Changes>::new(f).unwrap();
+    let mut changelog = Changelog::new(&mut template, git);
 
     let res = changelog.generate();
 
@@ -424,8 +424,8 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let git = Git::new(git_cmd);
 
     let f = File::open(YAML_FILE).unwrap();
-    let template = Template::<changelog::Changes>::new(f).unwrap();
-    let changelog = Changelog::new(template, git);
+    let mut template = Template::<changelog::Changes>::new(f).unwrap();
+    let mut changelog = Changelog::new(&mut template, git);
 
     let output = changelog.generate().unwrap();
 
@@ -481,8 +481,8 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let git = Git::new(git_cmd);
 
     let f = File::open(YAML_FILE).unwrap();
-    let template = Template::<changelog::Changes>::new(f).unwrap();
-    let changelog = Changelog::new(template, git);
+    let mut template = Template::<changelog::Changes>::new(f).unwrap();
+    let mut changelog = Changelog::new(&mut template, git);
 
     let output = changelog.generate().unwrap();
 

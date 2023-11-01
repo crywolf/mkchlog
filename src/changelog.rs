@@ -11,24 +11,24 @@ use std::fmt::Display;
 use std::vec;
 
 /// Represents the generated changelog
-pub struct Changelog<T: ChangesList + Default> {
-    template: Template<T>,
+pub struct Changelog<'a, T: ChangesList + Default> {
+    template: &'a mut Template<T>,
     git: Git,
 }
 
-impl<T> Changelog<T>
+impl<'a, T> Changelog<'a, T>
 where
-    T: ChangesList + Default + Display + Clone,
+    T: ChangesList + Default + Display,
 {
     /// Creates a new [`Changelog`] object. Requires initialized [`Template`] and [`Git`] objects.
-    pub fn new(template: Template<T>, git: Git) -> Self {
+    pub fn new(template: &'a mut Template<T>, git: Git) -> Self {
         Self { template, git }
     }
 
     /// Generates the final changelog markdown string from the commit messages.
-    pub fn generate(&self) -> Result<String, Box<dyn Error>> {
+    pub fn generate(&mut self) -> Result<String, Box<dyn Error>> {
         // get prepared general changelog structure from template YAML data
-        let mut changelog_template = self.template.data();
+        let changelog_template = self.template.data();
 
         let commits = self.git.commits()?;
 
@@ -37,7 +37,7 @@ where
             let mut commit_changelog = CommitChangelog::new(commit);
 
             // insert changelog entries from commits to changelog_template
-            commit_changelog.parse(&mut changelog_template)?;
+            commit_changelog.parse(changelog_template)?;
         }
 
         // use prepared changelog_template and format the final changelog output
@@ -70,7 +70,7 @@ where
             }
 
             if !sec.subsections.is_empty() {
-                for (_, subsec) in sec.subsections {
+                for (_, subsec) in sec.subsections.iter() {
                     if !subsec.changes.is_empty() {
                         buff.push_str("### ");
                         buff.push_str(&subsec.title);

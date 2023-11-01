@@ -3,6 +3,7 @@ use indexmap::IndexMap;
 use serde_yaml::Value;
 use std::error::Error;
 use std::io::Read;
+use std::str::FromStr;
 
 /// Template represents parsed YAML config file
 #[derive(Debug)]
@@ -21,50 +22,13 @@ pub struct Settings {
 pub type ChangelogTemplate<T> = IndexMap<String, Section<T>>;
 type Yaml = serde_yaml::Value;
 
-impl<T: Default + Clone> Template<T> {
+impl<T: Default> Template<T> {
     /// Parses the config (template) YAML file and returns the initialized template object.
     pub fn new(mut file: impl Read) -> Result<Self, Box<dyn Error>> {
         let mut config_yml = String::new();
         file.read_to_string(&mut config_yml)?;
 
         Self::from_str(&config_yml)
-    }
-
-    pub fn from_str(config_yml: &str) -> Result<Self, Box<dyn Error>> {
-        let config: Yaml = match serde_yaml::from_str(config_yml) {
-            Ok(config) => config,
-            Err(err) => return Err(format!("Error parsing config YAML file: {}", err).into()),
-        };
-
-        let skip_commits_up_to = config
-            .get("skip-commits-up-to")
-            .map(|v| {
-                v.as_str()
-                    .map(ToOwned::to_owned)
-                    .ok_or("'skip-commits-up-to' key must be a string")
-            })
-            .transpose()?;
-
-        let git_path = config
-            .get("git-path")
-            .map(|v| {
-                v.as_str()
-                    .map(std::path::PathBuf::from)
-                    .ok_or("'git-path' key must be a string")
-            })
-            .transpose()?;
-
-        let mut template = Self {
-            changelog_template: ChangelogTemplate::new(),
-            settings: Settings {
-                skip_commits_up_to,
-                git_path,
-            },
-        };
-
-        template.parse_config(config)?;
-
-        Ok(template)
     }
 
     /// Validates template data extracted from the configuration (template) file
@@ -164,9 +128,50 @@ impl<T: Default + Clone> Template<T> {
         Ok(())
     }
 
-    /// Returns data structure with initialized sections for storing changelog data.
-    pub fn data(&self) -> ChangelogTemplate<T> {
-        self.changelog_template.clone()
+    /// Returns mutable reference to the data structure with initialized sections for storing changelog data.
+    pub fn data(&mut self) -> &mut ChangelogTemplate<T> {
+        &mut self.changelog_template
+    }
+}
+
+impl<T: Default> std::str::FromStr for Template<T> {
+    type Err = Box<dyn Error>;
+
+    fn from_str(config_yml: &str) -> Result<Self, Self::Err> {
+        let config: Yaml = match serde_yaml::from_str(config_yml) {
+            Ok(config) => config,
+            Err(err) => return Err(format!("Error parsing config YAML file: {}", err).into()),
+        };
+
+        let skip_commits_up_to = config
+            .get("skip-commits-up-to")
+            .map(|v| {
+                v.as_str()
+                    .map(ToOwned::to_owned)
+                    .ok_or("'skip-commits-up-to' key must be a string")
+            })
+            .transpose()?;
+
+        let git_path = config
+            .get("git-path")
+            .map(|v| {
+                v.as_str()
+                    .map(std::path::PathBuf::from)
+                    .ok_or("'git-path' key must be a string")
+            })
+            .transpose()?;
+
+        let mut template = Self {
+            changelog_template: ChangelogTemplate::new(),
+            settings: Settings {
+                skip_commits_up_to,
+                git_path,
+            },
+        };
+
+        template.parse_config(config)?;
+
+        Ok(template)
     }
 }
 
@@ -240,7 +245,7 @@ sections:
         let res = Template::new(f);
         assert!(res.is_ok());
 
-        let template = res.unwrap();
+        let mut template = res.unwrap();
 
         // check for correctly parsed settings
         let settings = &template.settings;

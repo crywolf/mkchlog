@@ -28,7 +28,7 @@ pub fn run(config: config::Config) -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
-    let template = Template::<changelog::Changes>::new(f)?;
+    let mut template = Template::<changelog::Changes>::new(f)?;
 
     // set value from program arguments or yaml file
     let commit_id = match (
@@ -56,7 +56,7 @@ pub fn run(config: config::Config) -> Result<(), Box<dyn std::error::Error>> {
         Git::new(git_cmd)
     };
 
-    let changelog = Changelog::new(template, git);
+    let mut changelog = Changelog::new(&mut template, git);
 
     let output = changelog.generate()?;
 
