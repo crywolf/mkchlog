@@ -58,7 +58,7 @@ pub fn run(config: config::Config) -> Result<(), Box<dyn std::error::Error>> {
 
     let changelog = Changelog::new(template, git);
 
-    let output = changelog.produce()?;
+    let output = changelog.generate()?;
 
     if let Command::Generate = config.command {
         println!("{}", output);

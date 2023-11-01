@@ -141,7 +141,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let template = Template::<changelog::Changes>::new(f).unwrap();
     let changelog = Changelog::new(template, git);
 
-    let output = changelog.produce().unwrap();
+    let output = changelog.generate().unwrap();
 
     let exp_output = "\
 ============================================
@@ -222,7 +222,7 @@ Date:   Tue Jun 13 16:27:59 2023 +0200
     let template = Template::<changelog::Changes>::new(f).unwrap();
     let changelog = Changelog::new(template, git);
 
-    let output = changelog.produce().unwrap();
+    let output = changelog.generate().unwrap();
 
     let exp_output = "\
 ============================================
@@ -302,7 +302,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let template = Template::<changelog::Changes>::new(f).unwrap();
     let changelog = Changelog::new(template, git);
 
-    let output = changelog.produce().unwrap();
+    let output = changelog.generate().unwrap();
 
     let exp_output = "\
 ============================================
@@ -351,7 +351,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let template = Template::<changelog::Changes>::new(f).unwrap();
     let changelog = Changelog::new(template, git);
 
-    let res = changelog.produce();
+    let res = changelog.generate();
 
     assert!(res.is_err());
     assert!(res
@@ -385,7 +385,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let template = Template::<changelog::Changes>::new(f).unwrap();
     let changelog = Changelog::new(template, git);
 
-    let res = changelog.produce();
+    let res = changelog.generate();
 
     assert!(res.is_err());
     assert!(res
@@ -427,7 +427,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let template = Template::<changelog::Changes>::new(f).unwrap();
     let changelog = Changelog::new(template, git);
 
-    let output = changelog.produce().unwrap();
+    let output = changelog.generate().unwrap();
 
     let exp_output = "\
 ============================================
@@ -484,7 +484,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let template = Template::<changelog::Changes>::new(f).unwrap();
     let changelog = Changelog::new(template, git);
 
-    let output = changelog.produce().unwrap();
+    let output = changelog.generate().unwrap();
 
     let exp_output = "\
 ============================================

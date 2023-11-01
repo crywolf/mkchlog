@@ -31,7 +31,7 @@ fn run(config: &str, git_callback: js_sys::Function) -> Result<(), Box<dyn std::
 
     let changelog = Changelog::new(template, git);
 
-    changelog.produce()?;
+    changelog.generate()?;
     Ok(())
 }
 

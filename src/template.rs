@@ -7,7 +7,7 @@ use std::io::Read;
 /// Template represents parsed YAML config file
 #[derive(Debug)]
 pub struct Template<T: Default> {
-    changelog_map: ChangelogMap<T>,
+    changelog_template: ChangelogTemplate<T>,
     pub settings: Settings,
 }
 
@@ -18,7 +18,7 @@ pub struct Settings {
     pub git_path: Option<std::path::PathBuf>,
 }
 
-type ChangelogMap<T> = IndexMap<String, Section<T>>;
+pub type ChangelogTemplate<T> = IndexMap<String, Section<T>>;
 type Yaml = serde_yaml::Value;
 
 impl<T: Default + Clone> Template<T> {
@@ -55,7 +55,7 @@ impl<T: Default + Clone> Template<T> {
             .transpose()?;
 
         let mut template = Self {
-            changelog_map: ChangelogMap::new(),
+            changelog_template: ChangelogTemplate::new(),
             settings: Settings {
                 skip_commits_up_to,
                 git_path,
@@ -158,15 +158,15 @@ impl<T: Default + Clone> Template<T> {
                 section.subsections = subsections_map?;
             }
 
-            self.changelog_map.insert(sec.to_string(), section);
+            self.changelog_template.insert(sec.to_string(), section);
         }
 
         Ok(())
     }
 
     /// Returns data structure with initialized sections for storing changelog data.
-    pub fn data(&self) -> ChangelogMap<T> {
-        self.changelog_map.clone()
+    pub fn data(&self) -> ChangelogTemplate<T> {
+        self.changelog_template.clone()
     }
 }
 
