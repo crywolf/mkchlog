@@ -52,7 +52,8 @@ pub fn run(config: config::Config) -> Result<(), Box<dyn std::error::Error>> {
         &template.settings.projects_settings.projects,
     ) {
         (None, projects) => {
-            if !projects.is_empty() {
+            if !projects.is_empty() && !config.read_from_stdin {
+                // 'project' arg can be empty when reading from stdin (used in Github hook)
                 return Err(
                     "You need to specify project name. Use command 'help' for more information."
                         .into(),
