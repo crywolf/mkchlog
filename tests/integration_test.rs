@@ -1,3 +1,5 @@
+//! Integration tests without multi-project settings
+
 mod mocks;
 
 use mkchlog::changelog;
@@ -8,6 +10,7 @@ use mocks::GitCmdMock;
 use std::fs::File;
 
 const YAML_FILE: &str = "tests/mkchlog.yml";
+const PROJECT: Option<String> = None;
 
 #[test]
 fn it_produces_correct_output() {
@@ -141,7 +144,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let mut template = Template::<changelog::Changes>::new(f).unwrap();
     let mut changelog = Changelog::new(&mut template, git);
 
-    let output = changelog.generate().unwrap();
+    let output = changelog.generate(PROJECT).unwrap();
 
     let exp_output = "\
 ============================================
@@ -222,7 +225,7 @@ Date:   Tue Jun 13 16:27:59 2023 +0200
     let mut template = Template::<changelog::Changes>::new(f).unwrap();
     let mut changelog = Changelog::new(&mut template, git);
 
-    let output = changelog.generate().unwrap();
+    let output = changelog.generate(PROJECT).unwrap();
 
     let exp_output = "\
 ============================================
@@ -302,7 +305,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let mut template = Template::<changelog::Changes>::new(f).unwrap();
     let mut changelog = Changelog::new(&mut template, git);
 
-    let output = changelog.generate().unwrap();
+    let output = changelog.generate(PROJECT).unwrap();
 
     let exp_output = "\
 ============================================
@@ -351,7 +354,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let mut template = Template::<changelog::Changes>::new(f).unwrap();
     let mut changelog = Changelog::new(&mut template, git);
 
-    let res = changelog.generate();
+    let res = changelog.generate(PROJECT);
 
     assert!(res.is_err());
     assert!(res
@@ -385,7 +388,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let mut template = Template::<changelog::Changes>::new(f).unwrap();
     let mut changelog = Changelog::new(&mut template, git);
 
-    let res = changelog.generate();
+    let res = changelog.generate(PROJECT);
 
     assert!(res.is_err());
     assert!(res
@@ -427,7 +430,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let mut template = Template::<changelog::Changes>::new(f).unwrap();
     let mut changelog = Changelog::new(&mut template, git);
 
-    let output = changelog.generate().unwrap();
+    let output = changelog.generate(PROJECT).unwrap();
 
     let exp_output = "\
 ============================================
@@ -484,7 +487,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let mut template = Template::<changelog::Changes>::new(f).unwrap();
     let mut changelog = Changelog::new(&mut template, git);
 
-    let output = changelog.generate().unwrap();
+    let output = changelog.generate(PROJECT).unwrap();
 
     let exp_output = "\
 ============================================

@@ -1,0 +1,28 @@
+skip-commits-up-to: bc58e6bf2cf640d46aa832e297d0f215f76dfce0
+
+projects:
+    names: [mkchlog, mkchlog-action] # list of project names
+
+sections:
+    # section identifier selected by project maintainer
+    security:
+        # The header presented to the user
+        title: Security
+        # desctiption is optional and will appear above changes
+        description: This section contains very important security-related changes.
+        subsections:
+            vuln_fixes:
+                title: Fixed vulnerabilities
+    features:
+        title: New features
+    bug_fixes:
+        title: Fixed bugs
+    breaking:
+        title: Breaking changes
+    perf:
+        title: Performance improvements
+    doc:
+        title: Documentation changes
+    dev:
+        title: Development
+        description: Internal development changes

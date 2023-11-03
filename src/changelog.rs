@@ -26,7 +26,27 @@ where
     }
 
     /// Generates the final changelog markdown string from the commit messages.
-    pub fn generate(&mut self) -> Result<String, Box<dyn Error>> {
+    pub fn generate(&mut self, project: Option<String>) -> Result<String, Box<dyn Error>> {
+        let settings = &self.template.settings;
+        let default_project_from_config = &settings.projects_settings.default_project.clone();
+        let projects_since_commit = settings
+            .projects_settings
+            .since_commit
+            .clone()
+            .unwrap_or_default();
+        let use_default_project = default_project_from_config.is_some();
+        let mut default_project = &None;
+        let mut set_default_project = false;
+
+        // check if user provided project name matches the project name in YAML config file
+        if let Some(project_name) = &project {
+            if !settings.projects_settings.projects.contains(project_name) {
+                return Err(
+                    format!("Project '{}' not configured in config file", project_name).into(),
+                );
+            }
+        }
+
         // get prepared general changelog structure from template YAML data
         let changelog_template = self.template.data();
 
@@ -34,10 +54,20 @@ where
 
         // iterate through commits and fill in the changelog_template
         for commit in commits {
+            // all commit until `since-commit` should belong to `default_project`
+            if use_default_project {
+                if set_default_project {
+                    default_project = default_project_from_config;
+                }
+                if commit.commit_id == projects_since_commit {
+                    set_default_project = true;
+                }
+            }
+
             let mut commit_changelog = CommitChangelog::new(commit);
 
             // insert changelog entries from commits to changelog_template
-            commit_changelog.parse(changelog_template)?;
+            commit_changelog.parse(changelog_template, &project, default_project)?;
         }
 
         // use prepared changelog_template and format the final changelog output
@@ -140,12 +170,33 @@ impl CommitChangelog {
     pub fn parse<T>(
         &mut self,
         changelog_template: &mut ChangelogTemplate<T>,
+        project: &Option<String>,
+        default_project: &Option<String>,
     ) -> Result<(), Box<dyn Error>>
     where
         T: ChangesList + Default,
     {
         if self.changelog_lines().len() == 1 && self.changelog_lines()[0] == "skip" {
             return Ok(());
+        }
+
+        // is asking for a changelog for specific project, check if the commit belongs to it
+        if let Some(project) = project.as_deref() {
+            // if default project is set, then act as if it was specified in commit's changelog message
+            // otherwise get it from changelog message
+            let changelog_project = if default_project.is_some() {
+                default_project.as_ref().unwrap()
+            } else {
+                self.get_key("project").ok_or(format!(
+                    "Missing 'project' key in changelog message:\n>>> {}",
+                    self.commit.raw_data
+                ))?
+            };
+
+            // return when commit belongs to different project than user asked for
+            if changelog_project != project {
+                return Ok(());
+            }
         }
 
         let section = self.get_key("section").ok_or(format!(

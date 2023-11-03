@@ -6,6 +6,8 @@ use std::error::Error;
 /// Git commit
 #[derive(Debug)]
 pub struct Commit {
+    /// Git commit identifier (commit number)
+    pub commit_id: String,
     /// Git commit header
     pub header: String,
     /// Git commit message
@@ -19,7 +21,7 @@ pub struct Commit {
 impl Commit {
     /// Parses raw data of the commit and returns a [`Commit`] object.
     pub fn new(raw_data: &str) -> Result<Self, Box<dyn Error>> {
-        let data = &raw_data.replace('\r', "")[..]; // remove extra \r in Windows
+        let data = &raw_data.trim().replace('\r', "")[..]; // remove extra \r in Windows
 
         let changelog_regex = Regex::new(r"(?m)^\s*changelog:").expect("should never panic");
 
@@ -42,7 +44,21 @@ impl Commit {
             return Err(format!("Missing 'changelog:' key in commit:\n>>> {}", raw_data).into());
         }
 
+        let commit_id = header
+            .lines()
+            .next()
+            .ok_or(format!(
+                "Could not parse commit id from commit:\n>>> {}",
+                raw_data
+            ))?
+            .strip_prefix("commit ")
+            .ok_or(format!(
+                "Could not extract commit number from header:\n>>> {}",
+                header
+            ))?;
+
         let commit = Commit {
+            commit_id: commit_id.to_owned(),
             header: header.to_owned(),
             message: commit_message.trim().to_owned(),
             changelog_message: changelog,

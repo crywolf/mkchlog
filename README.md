@@ -27,7 +27,6 @@ You can provide additional options:
 * Path to the git repository [default value is the current directory]. (This option can be also specified in `.mkchlog.yml`.)
 * `--from-stdin` Read commit(s) from stdin. Useful to use in a commit-msg git hook.
 
-
 `mkchlog -c 7c85bee4303d56bededdfacf8fbb7bdc68e2195b -f .mkchlog.yml -g ../git-mkchlog-test/ gen`
 
 Run `mkchlog help` for complete command options.
@@ -37,6 +36,7 @@ Run `mkchlog help` for complete command options.
 #### Config file
 
 ```yaml
+# mkchlog.yml
 # OPTIONAL Commit number to start (same as -c 7c85bee4303d56bededdfacf8fbb7bdc68e2195b)
 skip-commits-up-to: 7c85bee4303d56bededdfacf8fbb7bdc68e2195b
 
@@ -172,7 +172,47 @@ Internal development changes
 * Setup Github Actions
 ```
 
-### Explanation
+## Multi-project setup
+
+Some repositories host multiple projects that are related but should have disjoint changelogs. This is typical for multi-crate workspacess in Rust.
+
+#### Config file
+
+```yaml
+# mkchlog.yml
+# top level
+projects:
+    names: [mkchlog, mkchlog-action] # mandatory list of project names [mandatory]
+    since-commit: 11964cbb5ac05c5a19d75b5bebcc74ebc867e438 # projects are mandatory since COMMIT_NUMBER [optional]
+    default: mkchlog # commits up to COMMIT_NUMBER are considered belonging to the project NAME [optional]
+```
+
+If projects `names` list is provided then git commit must contain `project: x` where `x` is one of the specified project names.
+
+To help with migration additional `since-commit` and `default` keywords can be used together. if they are specified then commits up to `since-commit` are considered belonging to `default` project.
+
+#### Commits
+
+```
+Publish release version rather than debug
+
+This updates the wasm module to one which was compiled with `--release`.
+
+changelog:
+    project: mkchlog-action
+    section: perf
+    inherit: all
+```
+
+#### Usage
+
+To generate changelog for the `mkchlog-action` project use the following command:
+
+`mkchlog --project mkchlog-action gen`
+
+Run `mkchlog help` for complete command options.
+
+## Explanation
 
 (Rationale, idea and motivation by [Kixunil](https://github.com/Kixunil))
 
@@ -204,6 +244,8 @@ This is based on these experiences:
   CI complaining about missing information prevents forgetting.
 
 Additionally, we don't want to depend on GitHub so that we can migrate easily if needed - thus not pulling information from PRs.
+
+---
 
 ### MSRV
 

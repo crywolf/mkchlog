@@ -17,8 +17,19 @@ pub struct Template<T: Default> {
 pub struct Settings {
     pub skip_commits_up_to: Option<String>,
     pub git_path: Option<std::path::PathBuf>,
+    pub projects_settings: ProjectsSettings,
 }
 
+/// Multi-project repository settings from YAML config file
+#[derive(Debug)]
+pub struct ProjectsSettings {
+    pub projects: Vec<String>,
+    pub since_commit: Option<String>,
+    pub default_project: Option<String>,
+}
+
+/// Data structure prefiled from YAML config with section names as keys
+/// and empty [`Section`]s to be filled with changelog messages from commits
 pub type ChangelogTemplate<T> = IndexMap<String, Section<T>>;
 type Yaml = serde_yaml::Value;
 
@@ -148,7 +159,7 @@ impl<T: Default> std::str::FromStr for Template<T> {
             .map(|v| {
                 v.as_str()
                     .map(ToOwned::to_owned)
-                    .ok_or("'skip-commits-up-to' key must be a string")
+                    .ok_or("'skip-commits-up-to' key in config file must be a string")
             })
             .transpose()?;
 
@@ -157,15 +168,77 @@ impl<T: Default> std::str::FromStr for Template<T> {
             .map(|v| {
                 v.as_str()
                     .map(std::path::PathBuf::from)
-                    .ok_or("'git-path' key must be a string")
+                    .ok_or("'git-path' key in config file must be a string")
             })
             .transpose()?;
+
+        let projects = config
+            .get("projects")
+            .map(|v| {
+                v.as_mapping()
+                    .map(ToOwned::to_owned)
+                    .ok_or("Malformed 'projects' key in config file")
+            })
+            .transpose()?;
+
+        let mut proj_names: Vec<String> = Vec::new();
+        let mut since_commit = None;
+        let mut default_project = None;
+
+        if let Some(projects) = projects {
+            proj_names = projects
+                .get(&Value::from("names"))
+                .map(|v| {
+                    v.as_sequence()
+                        .map(ToOwned::to_owned)
+                        .ok_or("'names' in 'projects' in config file must be an array (list of project names)")
+                })
+                .transpose()?
+                .ok_or("Missing 'names' key in config file")?
+                .iter()
+                .filter_map(|v| v.as_str().map(ToOwned::to_owned))
+                .filter(|v| !v.is_empty())
+                .collect::<Vec<_>>();
+
+            since_commit = projects
+                .get(&Value::from("since-commit"))
+                .map(|v| {
+                    v.as_str()
+                        .map(ToOwned::to_owned)
+                        .ok_or("'since-commits' key in config file must be a string")
+                })
+                .transpose()?;
+
+            default_project = projects
+                .get(&Value::from("default"))
+                .map(|v| {
+                    v.as_str()
+                        .map(ToOwned::to_owned)
+                        .ok_or("'default' key in config file must be a string")
+                })
+                .transpose()?;
+
+            if since_commit.is_some() && default_project.is_none() {
+                return Err("Default project name is not set config file".into());
+            }
+
+            if default_project.is_some()
+                && !proj_names.contains(default_project.as_ref().expect("default name is set"))
+            {
+                return Err("Default project name is not contained in project names list".into());
+            }
+        }
 
         let mut template = Self {
             changelog_template: ChangelogTemplate::new(),
             settings: Settings {
                 skip_commits_up_to,
                 git_path,
+                projects_settings: ProjectsSettings {
+                    projects: proj_names,
+                    since_commit,
+                    default_project,
+                },
             },
         };
 
@@ -214,8 +287,13 @@ mod tests {
         use indexmap::IndexMap;
 
         let f = FileReaderMock::new(
-            "\
+            r#"
 skip-commits-up-to: bc58e6bf2cf640d46aa832e297d0f215f76dfce0
+
+projects:
+   names: ["mkchlog", "mkchlog-action"] # list of project names
+   since-commit: 276aa9e4b013de1646ea57cfcbf74e5966524f68 # projects are mandatory since COMMIT_NUMBER
+   default: mkchlog # commits up to COMMIT_NUMBER are considered belonging to the project NAME
 
 sections:
     # section identifier selected by project maintainer
@@ -239,7 +317,7 @@ sections:
     dev:
         title: Development
         description: Internal development changes
-",
+"#,
         );
 
         let res = Template::new(f);
@@ -249,10 +327,21 @@ sections:
 
         // check for correctly parsed settings
         let settings = &template.settings;
-
         assert_eq!(
             settings.skip_commits_up_to.as_ref().unwrap(),
             "bc58e6bf2cf640d46aa832e297d0f215f76dfce0"
+        );
+        assert_eq!(
+            settings.projects_settings.projects,
+            vec!["mkchlog", "mkchlog-action"]
+        );
+        assert_eq!(
+            settings.projects_settings.since_commit.as_ref().unwrap(),
+            "276aa9e4b013de1646ea57cfcbf74e5966524f68"
+        );
+        assert_eq!(
+            settings.projects_settings.default_project.as_ref().unwrap(),
+            "mkchlog"
         );
 
         // check if parsed template has correct format
