@@ -1,8 +1,10 @@
 //! Template represents parsed YAML config file
 use indexmap::IndexMap;
-use serde_yaml::Value;
+use serde_yaml::{Mapping, Value};
+use std::collections::HashMap;
 use std::error::Error;
 use std::io::Read;
+use std::path::PathBuf;
 use std::str::FromStr;
 
 /// Template represents parsed YAML config file
@@ -16,14 +18,14 @@ pub struct Template<T: Default> {
 #[derive(Debug)]
 pub struct Settings {
     pub skip_commits_up_to: Option<String>,
-    pub git_path: Option<std::path::PathBuf>,
+    pub git_path: Option<PathBuf>,
     pub projects_settings: ProjectsSettings,
 }
 
 /// Multi-project repository settings from YAML config file
 #[derive(Debug)]
 pub struct ProjectsSettings {
-    pub projects: Vec<String>,
+    pub projects: HashMap<String, Vec<PathBuf>>,
     pub since_commit: Option<String>,
     pub default_project: Option<String>,
 }
@@ -172,7 +174,7 @@ impl<T: Default> std::str::FromStr for Template<T> {
             })
             .transpose()?;
 
-        let projects = config
+        let projects_sec = config
             .get("projects")
             .map(|v| {
                 v.as_mapping()
@@ -181,26 +183,61 @@ impl<T: Default> std::str::FromStr for Template<T> {
             })
             .transpose()?;
 
-        let mut proj_names: Vec<String> = Vec::new();
+        let mut projects: HashMap<String, Vec<PathBuf>> = HashMap::new();
         let mut since_commit = None;
         let mut default_project = None;
 
-        if let Some(projects) = projects {
-            proj_names = projects
-                .get(&Value::from("names"))
+        if let Some(projects_sec) = projects_sec {
+            let proj_list = projects_sec
+                .get(&Value::from("list"))
                 .map(|v| {
-                    v.as_sequence()
-                        .map(ToOwned::to_owned)
-                        .ok_or("'names' in 'projects' in config file must be an array (list of project names)")
+                    v.as_sequence().map(ToOwned::to_owned).ok_or(
+                        "'list' in 'projects' in config file must be an array (list of projects)",
+                    )
                 })
                 .transpose()?
-                .ok_or("Missing 'names' key in config file")?
+                .ok_or("Missing 'list' key in config file")?;
+
+            let proj_list_map: Vec<Mapping> = proj_list
                 .iter()
-                .filter_map(|v| v.as_str().map(ToOwned::to_owned))
-                .filter(|v| !v.is_empty())
+                .map(|v| {
+                    v.as_mapping()
+                        .map(ToOwned::to_owned)
+                        .ok_or("Malformed 'projects' key in config file")
+                })
+                .collect::<Result<Vec<Mapping>, &str>>()?;
+
+            #[rustfmt::skip]
+            let projects_list: Vec<(_, _)> = proj_list_map
+                .iter()
+                .flat_map(|v| {
+                    v.iter()
+                    .map(|(name, dirs)| {
+                        (
+                        name.as_str().ok_or("Malformed project name in config file"),
+                        dirs.as_sequence()
+                            .ok_or("Malformed directories list in config file")
+                            .map(|s| {
+                                s.iter()
+                                    .map(|d|
+                                        d.as_str()
+                                            .ok_or("Malformed directory name in config file"))
+                                    .collect::<Vec<_>>()
+                            })
+                        )
+                    })
+                    .collect::<Vec<_>>()
+                })
                 .collect::<Vec<_>>();
 
-            since_commit = projects
+            for (name, dirs) in projects_list {
+                let name = name?.to_owned();
+                let dirs: Result<Vec<_>, _> = dirs?.into_iter().collect();
+                let dirs: Vec<PathBuf> = dirs?.iter().map(PathBuf::from).collect();
+                projects.insert(name.clone(), dirs);
+            }
+
+            since_commit = projects_sec
                 .get(&Value::from("since-commit"))
                 .map(|v| {
                     v.as_str()
@@ -209,7 +246,7 @@ impl<T: Default> std::str::FromStr for Template<T> {
                 })
                 .transpose()?;
 
-            default_project = projects
+            default_project = projects_sec
                 .get(&Value::from("default"))
                 .map(|v| {
                     v.as_str()
@@ -223,7 +260,7 @@ impl<T: Default> std::str::FromStr for Template<T> {
             }
 
             if default_project.is_some()
-                && !proj_names.contains(default_project.as_ref().expect("default name is set"))
+                && !projects.contains_key(default_project.as_ref().expect("default name is set"))
             {
                 return Err("Default project name is not contained in project names list".into());
             }
@@ -235,7 +272,7 @@ impl<T: Default> std::str::FromStr for Template<T> {
                 skip_commits_up_to,
                 git_path,
                 projects_settings: ProjectsSettings {
-                    projects: proj_names,
+                    projects,
                     since_commit,
                     default_project,
                 },
@@ -261,7 +298,7 @@ pub struct Section<T: Default> {
 mod tests {
     use super::Template;
     use crate::changelog::Changes;
-    use std::io::Cursor;
+    use std::{collections::HashMap, io::Cursor, path::PathBuf};
 
     pub struct FileReaderMock {
         content: Cursor<String>,
@@ -291,9 +328,13 @@ mod tests {
 skip-commits-up-to: bc58e6bf2cf640d46aa832e297d0f215f76dfce0
 
 projects:
-   names: ["mkchlog", "mkchlog-action"] # list of project names
-   since-commit: 276aa9e4b013de1646ea57cfcbf74e5966524f68 # projects are mandatory since COMMIT_NUMBER
-   default: mkchlog # commits up to COMMIT_NUMBER are considered belonging to the project NAME
+    list:  # list of projects
+    - main: [".", .github, .githooks] # name: [directory1, directory2]
+    - mkchlog: [mkchlog] # name: [directory]
+    - mkchlog-action: [mkchlog-action] # name: [directory]
+
+    since-commit: 276aa9e4b013de1646ea57cfcbf74e5966524f68 # projects are mandatory since COMMIT_NUMBER
+    default: mkchlog # commits up to COMMIT_NUMBER are considered belonging to the project NAME
 
 sections:
     # section identifier selected by project maintainer
@@ -333,7 +374,21 @@ sections:
         );
         assert_eq!(
             settings.projects_settings.projects,
-            vec!["mkchlog", "mkchlog-action"]
+            HashMap::from([
+                (
+                    "main".to_owned(),
+                    vec![
+                        PathBuf::from("."),
+                        PathBuf::from(".github"),
+                        PathBuf::from(".githooks")
+                    ]
+                ),
+                (
+                    "mkchlog-action".to_owned(),
+                    vec![PathBuf::from("mkchlog-action")]
+                ),
+                ("mkchlog".to_owned(), vec![PathBuf::from("mkchlog")])
+            ])
         );
         assert_eq!(
             settings.projects_settings.since_commit.as_ref().unwrap(),

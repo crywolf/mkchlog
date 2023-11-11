@@ -52,8 +52,8 @@ pub fn run(config: config::Config) -> Result<(), Box<dyn std::error::Error>> {
         &template.settings.projects_settings.projects,
     ) {
         (None, projects) => {
-            if !projects.is_empty() && !config.read_from_stdin {
-                // 'project' arg can be empty when reading from stdin (used in Github hook)
+            if !projects.is_empty() && config.command == Command::Generate {
+                // 'project' arg can be empty when we are just checking the commits, not generating a changelog
                 return Err(
                     "You need to specify project name. Use command 'help' for more information."
                         .into(),
@@ -81,12 +81,8 @@ pub fn run(config: config::Config) -> Result<(), Box<dyn std::error::Error>> {
     };
 
     let mut changelog = Changelog::new(&mut template, git);
-
-    let output = changelog.generate(config.project)?;
-
-    if let Command::Generate = config.command {
-        println!("{}", output);
-    }
+    let output = changelog.generate(config.project, config.command)?;
+    println!("{}", output);
 
     Ok(())
 }

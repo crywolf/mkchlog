@@ -1,7 +1,10 @@
 skip-commits-up-to: bc58e6bf2cf640d46aa832e297d0f215f76dfce0
 
 projects:
-    names: [mkchlog, mkchlog-action] # list of project names
+    list:  # list of allowed projects
+    - main: [".", .github, .githooks] # name: [directory1, directory2]
+    - mkchlog: [mkchlog] # name: [directory]
+    - mkchlog-action: [mkchlog-action] # name: [directory]
 
 sections:
     # section identifier selected by project maintainer

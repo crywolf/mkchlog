@@ -4,13 +4,15 @@ mod mocks;
 
 use mkchlog::changelog;
 use mkchlog::changelog::Changelog;
+use mkchlog::config::Command;
 use mkchlog::git::Git;
 use mkchlog::template::Template;
 use mocks::GitCmdMock;
 use std::fs::File;
 
 const YAML_FILE: &str = "tests/mkchlog.yml";
-const PROJECT: Option<String> = None;
+const PROJECT_NONE: Option<String> = None;
+const COMMAND: Command = Command::Generate;
 
 #[test]
 fn it_produces_correct_output() {
@@ -27,6 +29,8 @@ Date:   Tue Oct 24 19:17:09 2023 +0200
         inherit: title
         title-is-enough: true
 
+.github/workflows/ci.yml
+
 commit cdbfeb9b2576e07f12da569c54f5ec3cd7b9c0fc
 Author: Cry Wolf <cry.wolf@centrum.cz>
 Date:   Sun Oct 22 23:08:57 2023 +0200
@@ -40,6 +44,12 @@ Date:   Sun Oct 22 23:08:57 2023 +0200
     changelog:
         section: features
         inherit: all
+
+.mkchlog.yml
+README.md
+src/lib.rs
+src/template.rs
+tests/mkchlog.yml
 
 commit 22e27ce785698c4a873eb5e2ad9e0cf9c849be8d
 Author: Martin Habovstiak <martin.habovstiak@gmail.com>
@@ -59,6 +69,13 @@ Date:   Sun Oct 22 09:12:50 2023 +0200
         section: features
         title-is-enough: true
 
+.github/workflows/test.yml
+Cargo.lock
+Cargo.toml
+README.md
+clippy.toml
+src/template.rs
+
 commit 624c947820cba6c0665b84bfc139f209277f2a95
 Author: Martin Habovstiak <martin.habovstiak@gmail.com>
 Date:   Sat Oct 21 19:00:27 2023 +0200
@@ -77,6 +94,12 @@ Date:   Sat Oct 21 19:00:27 2023 +0200
     changelog:
             section: dev
             title-is-enough: true
+
+.github/workflows/changelog.yml
+.github/workflows/test.yml
+.mkchlog.yml
+tests/integration_test.rs
+tests/mkchlog.yml
 
 commit 1cc72956df91e2fd8c45e72983c4e1149f1ac3b3
 Author: Cry Wolf <cry.wolf@centrum.cz>
@@ -98,6 +121,11 @@ Date:   Tue Jun 13 16:27:59 2023 +0200
                      working directory is **not** accessible by
                      unprivileged users you don't need to worry.
 
+src/bip324.cpp
+src/bip324.h
+src/crypto/chacha20poly1305.cpp
+src/crypto/chacha20poly1305.h
+
 commit 7c85bee4303d56bededdfacf8fbb7bdc68e2195b
 Author: Cry Wolf <cry.wolf@centrum.cz>
 Date:   Tue Jun 13 16:26:35 2023 +0200
@@ -112,6 +140,8 @@ Date:   Tue Jun 13 16:26:35 2023 +0200
         title: Improved processing speed by 10%
         title-is-enough: true
 
+src/key_io.cpp
+
 commit a1a654e256cc96e1c4b5a81845b5e3f3f0aa9ed3
 Author: Cry Wolf <cry.wolf@centrum.cz>
 Date:   Tue Jun 13 16:25:29 2023 +0200
@@ -121,6 +151,8 @@ Date:   Tue Jun 13 16:25:29 2023 +0200
     We found 42 grammar mistakes that are fixed in this commit.
 
     changelog: skip
+
+README.md
 
 commit 62db026b0ead7f0659df10c70e402c70ede5d7dd
 Author: Cry Wolf <cry.wolf@centrum.cz>
@@ -134,7 +166,9 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
 
     changelog:
         inherit: all
-        section: features",
+        section: features
+
+src/changelog.rs",
     );
 
     let git_cmd = Box::new(GitCmdMock::new(mocked_log));
@@ -144,7 +178,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let mut template = Template::<changelog::Changes>::new(f).unwrap();
     let mut changelog = Changelog::new(&mut template, git);
 
-    let output = changelog.generate(PROJECT).unwrap();
+    let output = changelog.generate(PROJECT_NONE, COMMAND).unwrap();
 
     let exp_output = "\
 ============================================
@@ -215,7 +249,10 @@ Date:   Tue Jun 13 16:27:59 2023 +0200
                      working directory is **not** accessible by
                      unprivileged users you don't need to worry.
 
-",
+src/bip324.cpp
+src/bip324.h
+src/crypto/chacha20poly1305.cpp
+src/crypto/chacha20poly1305.h",
     );
 
     let git_cmd = Box::new(GitCmdMock::new(mocked_log));
@@ -225,7 +262,7 @@ Date:   Tue Jun 13 16:27:59 2023 +0200
     let mut template = Template::<changelog::Changes>::new(f).unwrap();
     let mut changelog = Changelog::new(&mut template, git);
 
-    let output = changelog.generate(PROJECT).unwrap();
+    let output = changelog.generate(PROJECT_NONE, COMMAND).unwrap();
 
     let exp_output = "\
 ============================================
@@ -265,6 +302,12 @@ Date:   Sun Oct 22 23:08:57 2023 +0200
         section: features
         inherit: all
 
+.mkchlog.yml
+README.md
+src/lib.rs
+src/template.rs
+tests/mkchlog.yml
+
 commit 22e27ce785698c4a873eb5e2ad9e0cf9c849be8d
 Author: Martin Habovstiak <martin.habovstiak@gmail.com>
 Date:   Sun Oct 22 09:12:50 2023 +0200
@@ -283,6 +326,13 @@ Date:   Sun Oct 22 09:12:50 2023 +0200
             section: features
             title-is-enough: true
 
+.github/workflows/test.yml
+Cargo.lock
+Cargo.toml
+README.md
+clippy.toml
+src/template.rs
+
 commit 62db026b0ead7f0659df10c70e402c70ede5d7dd
 Author: Cry Wolf <cry.wolf@centrum.cz>
 Date:   Tue Jun 13 16:24:22 2023 +0200
@@ -295,7 +345,9 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
 
     changelog:
         inherit: all
-        section: features",
+        section: features
+
+src/changelog.rs",
     );
 
     let git_cmd = Box::new(GitCmdMock::new(mocked_log));
@@ -305,7 +357,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let mut template = Template::<changelog::Changes>::new(f).unwrap();
     let mut changelog = Changelog::new(&mut template, git);
 
-    let output = changelog.generate(PROJECT).unwrap();
+    let output = changelog.generate(PROJECT_NONE, COMMAND).unwrap();
 
     let exp_output = "\
 ============================================
@@ -344,7 +396,9 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
 
     changelog:
         inherit: all
-        section: unconfigured_section",
+        section: unconfigured_section
+
+src/changelog.rs",
     );
 
     let git_cmd = Box::new(GitCmdMock::new(mocked_log));
@@ -354,7 +408,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let mut template = Template::<changelog::Changes>::new(f).unwrap();
     let mut changelog = Changelog::new(&mut template, git);
 
-    let res = changelog.generate(PROJECT);
+    let res = changelog.generate(PROJECT_NONE, COMMAND);
 
     assert!(res.is_err());
     assert!(res
@@ -378,7 +432,9 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     fixes or other things irrelevant to the user of a project.
 
     changelog:
-        inherit: all",
+        inherit: all
+
+src/changelog.rs",
     );
 
     let git_cmd = Box::new(GitCmdMock::new(mocked_log));
@@ -388,7 +444,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let mut template = Template::<changelog::Changes>::new(f).unwrap();
     let mut changelog = Changelog::new(&mut template, git);
 
-    let res = changelog.generate(PROJECT);
+    let res = changelog.generate(PROJECT_NONE, COMMAND);
 
     assert!(res.is_err());
     assert!(res
@@ -412,6 +468,8 @@ Date:   Tue Oct 24 19:17:09 2023 +0200
         inherit: title
         title-is-enough: true
 
+.github/workflows/ci.yml
+
 commit 62db026b0ead7f0659df10c70e402c70ede5d7dd
 Author: Cry Wolf <cry.wolf@centrum.cz>
 Date:   Tue Jun 13 16:24:22 2023 +0200
@@ -420,7 +478,9 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
 
     changelog:
         inherit: all
-        section: features",
+        section: features
+
+src/changelog.rs",
     );
 
     let git_cmd = Box::new(GitCmdMock::new(mocked_log));
@@ -430,7 +490,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let mut template = Template::<changelog::Changes>::new(f).unwrap();
     let mut changelog = Changelog::new(&mut template, git);
 
-    let output = changelog.generate(PROJECT).unwrap();
+    let output = changelog.generate(PROJECT_NONE, COMMAND).unwrap();
 
     let exp_output = "\
 ============================================
@@ -469,6 +529,12 @@ Date:   Tue Oct 24 19:17:09 2023 +0200
         The new `.mkchlog.yml` is heavily inspired by the original example with
         more sections, so we're more flexible in the future.
 
+.github/workflows/changelog.yml
+.github/workflows/test.yml
+.mkchlog.yml
+tests/integration_test.rs
+tests/mkchlog.yml
+
 commit 62db026b0ead7f0659df10c70e402c70ede5d7dd
 Author: Cry Wolf <cry.wolf@centrum.cz>
 Date:   Tue Jun 13 16:24:22 2023 +0200
@@ -477,7 +543,9 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
 
     changelog:
         inherit: all
-        section: dev",
+        section: dev
+
+.github/workflows/ci.yml",
     );
 
     let git_cmd = Box::new(GitCmdMock::new(mocked_log));
@@ -487,7 +555,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let mut template = Template::<changelog::Changes>::new(f).unwrap();
     let mut changelog = Changelog::new(&mut template, git);
 
-    let output = changelog.generate(PROJECT).unwrap();
+    let output = changelog.generate(PROJECT_NONE, COMMAND).unwrap();
 
     let exp_output = "\
 ============================================
@@ -505,4 +573,85 @@ This configures github actions to test `mkchlog` as well as run it on its own re
 ============================================";
 
     assert_eq!(exp_output, output);
+}
+
+#[test]
+fn when_called_with_check_command_does_not_print_anything() {
+    let mocked_log = String::from(
+        "\
+commit 1cc72956df91e2fd8c45e72983c4e1149f1ac3b3
+Author: Cry Wolf <cry.wolf@centrum.cz>
+Date:   Tue Jun 13 16:27:59 2023 +0200
+
+    Fixed TOCTOU race condition when opening file
+
+    Previously we checked the file permissions before opening
+    the file now we check the metadata using file descriptor
+    after opening the file. (before reading)
+
+    changelog:
+        section: security:vuln_fixes
+        title: Fixed vulnerability related to opening files
+        description: The application was vulnerable to attacks
+                     if the attacker had access to the working
+                     directory. If you run this in such
+                     enviroment you should update ASAP. If your
+                     working directory is **not** accessible by
+                     unprivileged users you don't need to worry.
+
+src/bip324.cpp
+src/bip324.h
+src/crypto/chacha20poly1305.cpp
+src/crypto/chacha20poly1305.h",
+    );
+
+    let git_cmd = Box::new(GitCmdMock::new(mocked_log));
+    let git = Git::new(git_cmd);
+
+    let f = File::open(YAML_FILE).unwrap();
+    let mut template = Template::<changelog::Changes>::new(f).unwrap();
+    let mut changelog = Changelog::new(&mut template, git);
+
+    let output = changelog.generate(PROJECT_NONE, Command::Check).unwrap();
+
+    let exp_output = "";
+
+    assert_eq!(exp_output, output);
+}
+
+#[test]
+fn when_called_with_check_command_fails_if_commits_invalid() {
+    let mocked_log = String::from(
+        "\
+commit 62db026b0ead7f0659df10c70e402c70ede5d7dd
+Author: Cry Wolf <cry.wolf@centrum.cz>
+Date:   Tue Jun 13 16:24:22 2023 +0200
+
+    Added ability to skip commits.
+
+    This allows commits to be skipped by typing 'changelog: skip'
+    at the end of the commit. This is mainly useful for typo
+    fixes or other things irrelevant to the user of a project.
+
+    changelog:
+        inherit: all
+        section: unconfigured_section
+
+src/changelog.rs",
+    );
+
+    let git_cmd = Box::new(GitCmdMock::new(mocked_log));
+    let git = Git::new(git_cmd);
+
+    let f = File::open(YAML_FILE).unwrap();
+    let mut template = Template::<changelog::Changes>::new(f).unwrap();
+    let mut changelog = Changelog::new(&mut template, git);
+
+    let res = changelog.generate(PROJECT_NONE, Command::Check);
+
+    assert!(res.is_err());
+    assert!(res
+        .unwrap_err()
+        .to_string()
+        .starts_with("Unknown section 'unconfigured_section' in changelog message"));
 }

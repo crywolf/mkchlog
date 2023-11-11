@@ -1,7 +1,7 @@
 //! Git commit
 
 use regex::Regex;
-use std::error::Error;
+use std::{error::Error, path::PathBuf};
 
 /// Git commit
 #[derive(Debug)]
@@ -16,6 +16,8 @@ pub struct Commit {
     pub changelog_message: String,
     /// Raw data of the commit
     pub raw_data: String,
+    /// Files changed by the commit
+    pub changed_files: Vec<std::path::PathBuf>,
 }
 
 impl Commit {
@@ -39,10 +41,20 @@ impl Commit {
                 raw_data
             ))?;
 
-        let changelog: String = commit_iter.map(|s| s.trim()).collect();
-        if changelog.is_empty() {
-            return Err(format!("Missing 'changelog:' key in commit:\n>>> {}", raw_data).into());
-        }
+        let (changelog, changed_files) = commit_iter
+            .next()
+            .map(str::trim)
+            .ok_or(format!(
+                "Missing 'changelog:' key in commit:\n>>> {}",
+                raw_data
+            ))?
+            .rsplit_once("\n\n")
+            .ok_or(format!(
+                "Could not extract changed files from commit:\n>>> {}",
+                raw_data
+            ))?;
+
+        let changed_files: Vec<PathBuf> = Vec::from_iter(changed_files.lines().map(PathBuf::from));
 
         let commit_id = header
             .lines()
@@ -61,8 +73,9 @@ impl Commit {
             commit_id: commit_id.to_owned(),
             header: header.to_owned(),
             message: commit_message.trim().to_owned(),
-            changelog_message: changelog,
+            changelog_message: changelog.to_owned(),
             raw_data: raw_data.to_owned(),
+            changed_files,
         };
 
         Ok(commit)
@@ -72,6 +85,7 @@ impl Commit {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::path::PathBuf;
 
     #[test]
     fn commit_new() {
@@ -89,6 +103,11 @@ Date:   Tue Jun 13 16:26:35 2023 +0200
         title: Improved processing speed by 10%
         title-is-enough: true
 
+.githooks/commit-msg
+README.md
+src/config.rs
+src/template.rs
+tests/integration_test.rs
 ";
 
         let exp_header = "commit 7c85bee4303d56bededdfacf8fbb7bdc68e2195b
@@ -104,16 +123,25 @@ Date:   Tue Jun 13 16:26:35 2023 +0200";
         title: Improved processing speed by 10%
         title-is-enough: true";
 
+        let exp_changed_files = vec![
+            PathBuf::from(".githooks/commit-msg"),
+            PathBuf::from("README.md"),
+            PathBuf::from("src/config.rs"),
+            PathBuf::from("src/template.rs"),
+            PathBuf::from("tests/integration_test.rs"),
+        ];
+
         let res = Commit::new(raw_data).unwrap();
         assert_eq!(res.header, exp_header);
         assert_eq!(res.message, exp_message);
         assert_eq!(res.changelog_message, exp_changelog_message);
+        assert_eq!(res.changed_files, exp_changed_files);
     }
 
     #[test]
     fn commit_new_with_windows_extra_carrige_return() {
         // commit with \r\n as a line separator
-        let raw_data = "commit 7c85bee4303d56bededdfacf8fbb7bdc68e2195b\r\nAuthor: Cry Wolf <cry.wolf@centrum.cz>\r\nDate:   Tue Jun 13 16:26:35 2023 +0200\r\n\r\n    Don't reallocate the buffer when we know its size\r\n    changelog:\r\n        section: perf\r\n        title: Improved processing speed by 10%\r\n        title-is-enough: true";
+        let raw_data = "commit 7c85bee4303d56bededdfacf8fbb7bdc68e2195b\r\nAuthor: Cry Wolf <cry.wolf@centrum.cz>\r\nDate:   Tue Jun 13 16:26:35 2023 +0200\r\n\r\n    Don't reallocate the buffer when we know its size\r\n    changelog:\r\n        section: perf\r\n        title: Improved processing speed by 10%\r\n        title-is-enough: true\r\n\r\nsrc/something.txt";
 
         let exp_header = "commit 7c85bee4303d56bededdfacf8fbb7bdc68e2195b
 Author: Cry Wolf <cry.wolf@centrum.cz>
@@ -125,10 +153,13 @@ Date:   Tue Jun 13 16:26:35 2023 +0200";
         title: Improved processing speed by 10%
         title-is-enough: true";
 
+        let exp_changed_files = vec![PathBuf::from("src/something.txt")];
+
         let res = Commit::new(raw_data).unwrap();
         assert_eq!(res.header, exp_header);
         assert_eq!(res.message, exp_message);
         assert_eq!(res.changelog_message, exp_changelog_message);
+        assert_eq!(res.changed_files, exp_changed_files);
     }
 
     #[test]

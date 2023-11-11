@@ -1,5 +1,6 @@
 //! Changelog creation logic
 
+use crate::config::Command;
 use crate::git::commit::Commit;
 use crate::git::Git;
 use crate::template::ChangelogTemplate;
@@ -8,7 +9,7 @@ use regex::Regex;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::Display;
-use std::vec;
+use std::path::{Path, PathBuf};
 
 /// Represents the generated changelog
 pub struct Changelog<'a, T: ChangesList + Default> {
@@ -26,25 +27,38 @@ where
     }
 
     /// Generates the final changelog markdown string from the commit messages.
-    pub fn generate(&mut self, project: Option<String>) -> Result<String, Box<dyn Error>> {
+    pub fn generate(
+        &mut self,
+        project: Option<String>,
+        command: Command,
+    ) -> Result<String, Box<dyn Error>> {
+        let mut project = project;
         let settings = &self.template.settings;
+        let allowed_projects = &settings.projects_settings.projects.clone();
         let default_project_from_config = &settings.projects_settings.default_project.clone();
         let projects_since_commit = settings
             .projects_settings
             .since_commit
             .clone()
             .unwrap_or_default();
+
         let use_default_project = default_project_from_config.is_some();
         let mut default_project = &None;
         let mut set_default_project = false;
 
         // check if user provided project name matches the project name in YAML config file
         if let Some(project_name) = &project {
-            if !settings.projects_settings.projects.contains(project_name) {
+            if !&allowed_projects.contains_key(project_name) {
                 return Err(
                     format!("Project '{}' not configured in config file", project_name).into(),
                 );
             }
+        }
+
+        if command == Command::Check && !allowed_projects.is_empty() {
+            // if we just are just checking commits in multi-project setting,
+            // we need to check that all commits comply with the rules in template file
+            project = Some("force_check_all_projects".to_string());
         }
 
         // get prepared general changelog structure from template YAML data
@@ -67,11 +81,23 @@ where
             let mut commit_changelog = CommitChangelog::new(commit);
 
             // insert changelog entries from commits to changelog_template
-            commit_changelog.parse(changelog_template, &project, default_project)?;
+            commit_changelog.parse(
+                changelog_template,
+                allowed_projects,
+                &project,
+                default_project,
+            )?;
         }
 
         // use prepared changelog_template and format the final changelog output
         let mut buff = String::new();
+
+        if command == Command::Check {
+            // just checking validity of commits, return empty String
+            return Ok(buff);
+        }
+
+        // prepare and return changelog string
         buff.push_str("============================================\n\n");
 
         for (_, sec) in changelog_template {
@@ -170,6 +196,7 @@ impl CommitChangelog {
     pub fn parse<T>(
         &mut self,
         changelog_template: &mut ChangelogTemplate<T>,
+        allowed_projects: &HashMap<String, Vec<PathBuf>>,
         project: &Option<String>,
         default_project: &Option<String>,
     ) -> Result<(), Box<dyn Error>>
@@ -180,12 +207,12 @@ impl CommitChangelog {
             return Ok(());
         }
 
-        // is asking for a changelog for specific project, check if the commit belongs to it
+        // if asking for a changelog for specific project, check if the commit belongs to it
         if let Some(project) = project.as_deref() {
             // if default project is set, then act as if it was specified in commit's changelog message
-            // otherwise get it from changelog message
+            // otherwise get it from the changelog message
             let changelog_project = if default_project.is_some() {
-                default_project.as_ref().unwrap()
+                default_project.as_ref().expect("default project is set")
             } else {
                 self.get_key("project").ok_or(format!(
                     "Missing 'project' key in changelog message:\n>>> {}",
@@ -193,6 +220,44 @@ impl CommitChangelog {
                 ))?
             };
 
+            if !allowed_projects.contains_key(changelog_project) {
+                return Err(format!(
+                    "Incorrect (not allowed in config file) project name '{}' in changelog message:\n>>> {}",
+                    changelog_project, self.commit.raw_data
+                )
+                .into());
+            }
+
+            if default_project.is_none() {
+                // default project is set only for commits that were created before projects were configured in the template file
+                // check if changed files belong to the project specified in changelog
+
+                if let Some(dirs) = allowed_projects.get(changelog_project) {
+                    // iterate through all directories belonging to the project
+                    for file in &self.commit.changed_files {
+                        let mut file_belongs_to_project = false;
+                        for dir in dirs {
+                            if dir == &PathBuf::from(".") && file.parent() == Some(Path::new("")) {
+                                // file is in main directory
+                                file_belongs_to_project = true;
+                                break;
+                            }
+                            if file.starts_with(dir) {
+                                // file is in subdirectory
+                                file_belongs_to_project = true;
+                                break;
+                            }
+                        }
+                        if !file_belongs_to_project {
+                            #[rustfmt::skip]
+                            return Err(format!("File: '{}' does not belong to project '{}' in commit:\n>>> {}",
+                                file.display(),
+                                changelog_project,
+                                self.commit.raw_data).into());
+                        }
+                    }
+                }
+            }
             // return when commit belongs to different project than user asked for
             if changelog_project != project {
                 return Ok(());
@@ -417,7 +482,11 @@ Date:   Tue Jun 13 16:27:59 2023 +0200
                     enviroment you should update ASAP. If your
                     working directory is **not** accessible by
                     unprivileged users you don't need to worry.
-    ";
+
+src/bip324.cpp
+src/bip324.h
+src/crypto/chacha20poly1305.cpp
+src/crypto/chacha20poly1305.h";
 
         let exp = vec![
                 "section: security:vuln_fixes",
@@ -465,7 +534,11 @@ Date:   Tue Jun 13 16:27:59 2023 +0200
                 enviroment you should update ASAP. If your
                 working directory is **not** accessible by
                 unprivileged users you don't need to worry.
-    ";
+
+src/bip324.cpp
+src/bip324.h
+src/crypto/chacha20poly1305.cpp
+src/crypto/chacha20poly1305.h";
 
         let exp = vec![
                 "section: security:vuln_fixes",
@@ -490,7 +563,9 @@ Date:   Tue Jun 13 16:27:59 2023 +0200
 
     changelog:
         inherit: all
-        section: features";
+        section: features
+
+src/core_write.cpp";
 
         let exp = vec!["inherit: all", "section: features"];
 

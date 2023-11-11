@@ -1,7 +1,11 @@
 skip-commits-up-to: bc58e6bf2cf640d46aa832e297d0f215f76dfce0
 
 projects:
-    names: [mkchlog, mkchlog-action] # list of project names
+    list:  # list of allowed projects
+    - main: [".", .github, .githooks] # name: [directory1, directory2]
+    - mkchlog: [mkchlog] # name: [directory]
+    - mkchlog-action: [mkchlog-action] # name: [directory]
+
     since-commit: 11964cbb5ac05c5a19d75b5bebcc74ebc867e438 # projects are mandatory since COMMIT_NUMBER
     default: mkchlog # commits up to COMMIT_NUMBER are considered belonging to the project NAME
 

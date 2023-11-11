@@ -66,7 +66,7 @@ struct Args {
 }
 
 /// Application commands
-#[derive(Subcommand)]
+#[derive(Subcommand, PartialEq)]
 pub enum Command {
     /// Verify the structure of commit messages
     Check,

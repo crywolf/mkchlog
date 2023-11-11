@@ -1,6 +1,6 @@
 # Mkchlog
 
-Changelog generator tool suitable for user-facing changelogs and based on experiences of existing projects.
+Changelog generator tool suitable for user-facing changelogs and based on experiences of existing projects. More info on rationale is provided in the **Explanation** section below.
 
 ## Overview
 
@@ -36,7 +36,7 @@ Run `mkchlog help` for complete command options.
 #### Config file
 
 ```yaml
-# mkchlog.yml
+# .mkchlog.yml
 # OPTIONAL Commit number to start (same as -c 7c85bee4303d56bededdfacf8fbb7bdc68e2195b)
 skip-commits-up-to: 7c85bee4303d56bededdfacf8fbb7bdc68e2195b
 
@@ -179,17 +179,21 @@ Some repositories host multiple projects that are related but should have disjoi
 #### Config file
 
 ```yaml
-# mkchlog.yml
+# .mkchlog.yml
 # top level
 projects:
-    names: [mkchlog, mkchlog-action] # mandatory list of project names [mandatory]
+    list:  # list of allowed projects
+    - main: [".", .github, .githooks] # name: [directory1, directory2, ...]
+    - mkchlog: [mkchlog] # name: [directory]
+    - mkchlog-action: [mkchlog-action] # name: [directory]
+
     since-commit: 11964cbb5ac05c5a19d75b5bebcc74ebc867e438 # projects are mandatory since COMMIT_NUMBER [optional]
     default: mkchlog # commits up to COMMIT_NUMBER are considered belonging to the project NAME [optional]
 ```
 
-If projects `names` list is provided then git commit must contain `project: x` where `x` is one of the specified project names.
+If projects list is provided then git commit must contain `project: x` in the changelog message where `x` is one of the specified project names. After a project name the list of directories the project is contained in must be provided. Project `main` in the example above is the "root" project that contains all files in the project root directory plus other directories that do not belong to other projects.
 
-To help with migration additional `since-commit` and `default` keywords can be used together. if they are specified then commits up to `since-commit` are considered belonging to `default` project.
+To help with migration additional `since-commit` and `default` keywords can be used together. If they are specified then commits up to `since-commit` are considered belonging to `default` project.
 
 #### Commits
 
@@ -211,6 +215,14 @@ To generate changelog for the `mkchlog-action` project use the following command
 `mkchlog --project mkchlog-action gen`
 
 Run `mkchlog help` for complete command options.
+
+## Git Hooks
+
+To use locally configured githooks for the development you can run in the root directory of the repository:
+
+`git config --local core.hooksPath .githooks/`
+
+Alternatively add symlinks in your .git/hooks directory to any of the provided githooks.
 
 ## Explanation
 
