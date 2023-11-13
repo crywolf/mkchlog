@@ -11,6 +11,8 @@ use std::error::Error;
 use std::fmt::Display;
 use std::path::{Path, PathBuf};
 
+const FORCE_CHECK_ALL_PROJECTS: &str = "force_check_all_projects";
+
 /// Represents the generated changelog
 pub struct Changelog<'a, T: ChangesList + Default> {
     template: &'a mut Template<T>,
@@ -58,7 +60,7 @@ where
         if command == Command::Check && !allowed_projects.is_empty() {
             // if we just are just checking commits in multi-project setting,
             // we need to check that all commits comply with the rules in template file
-            project = Some("force_check_all_projects".to_string());
+            project = Some(FORCE_CHECK_ALL_PROJECTS.to_string());
         }
 
         // get prepared general changelog structure from template YAML data
@@ -258,27 +260,36 @@ impl CommitChangelog {
                     }
                 }
             }
+
             // return when commit belongs to different project than user asked for
-            if changelog_project != project {
+            if changelog_project != project && project != FORCE_CHECK_ALL_PROJECTS {
                 return Ok(());
             }
         }
 
-        let section = self.get_key("section").ok_or(format!(
-            "Missing 'section' key in changelog message:\n>>> {}",
-            self.commit.raw_data
-        ))?;
         let mut title = self.get_key("title").unwrap_or("");
         let mut description = self.get_key("description").unwrap_or("");
         let title_is_enough = self.get_key("title-is-enough").unwrap_or("");
         let inherit = self.get_key("inherit").unwrap_or("");
 
+        let section = self.get_key("section").ok_or(format!(
+            "Missing 'section' key in changelog message:\n>>> {}",
+            self.commit.raw_data
+        ))?;
         let (section, sub_section) = section
             .split_once(':')
-            .map(|(sec, subsec)| (sec, subsec.trim()))
+            .map(|(sec, subsec)| (sec.trim(), subsec.trim()))
             .unwrap_or((section, ""));
 
         if !changelog_template.contains_key(section) {
+            if section.is_empty() {
+                return Err(format!(
+                    "Empty section in changelog message:\n>>> {}",
+                    self.commit.raw_data
+                )
+                .into());
+            }
+
             return Err(format!(
                 "Unknown section '{}' in changelog message:\n>>> {}",
                 section, self.commit.raw_data
@@ -305,7 +316,7 @@ impl CommitChangelog {
                     .map(|s| s.trim())
                     .unwrap_or_default();
 
-                // remove hard wrapping (linefeeds) and identation added by git in the description
+                // remove hard wrapping (linefeeds) and indentation added by git in the description
                 let commit_message_description_lines: Vec<_> =
                     description.lines().map(|s| s.trim()).collect();
                 commit_message_description = commit_message_description_lines.join(" ");

@@ -17,7 +17,7 @@ pub struct Config {
     pub commit_id: Option<String>,
     /// Name of the project in multi-project repository for which we want to generate changelog.
     pub project: Option<String>,
-    /// Read commit(s) from stdin
+    /// Read commit from stdin
     pub read_from_stdin: bool,
 }
 
@@ -57,7 +57,7 @@ struct Args {
     #[arg(short, long)]
     git_path: Option<PathBuf>,
 
-    /// Read commit(s) from stdin
+    /// Read commit from stdin (useful for git hook)
     #[arg(long, default_value_t = false)]
     from_stdin: bool,
 
@@ -70,7 +70,10 @@ struct Args {
 pub enum Command {
     /// Verify the structure of commit messages
     Check,
-    /// Process git history and output the changelog in markdown format
+    /// Process and verify git history and print the changelog in markdown format
     #[command(name = "gen")]
     Generate,
+    /// Read commit from stdin and print commit template for git hook
+    #[command(name = "commit-template")]
+    CommitTemplate,
 }

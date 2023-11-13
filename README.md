@@ -191,7 +191,7 @@ projects:
     default: mkchlog # commits up to COMMIT_NUMBER are considered belonging to the project NAME [optional]
 ```
 
-If projects list is provided then git commit must contain `project: x` in the changelog message where `x` is one of the specified project names. After a project name the list of directories the project is contained in must be provided. Project `main` in the example above is the "root" project that contains all files in the project root directory plus other directories that do not belong to other projects.
+If projects list is provided then git commit must contain `project: x` in the changelog message where `x` is one of the specified project names. After a project name, the list of directories the project is contained in, must be provided. Project `main` in the example above is the "root" project that contains all files in the project root directory, plus other directories that do not belong to other projects.
 
 To help with migration additional `since-commit` and `default` keywords can be used together. If they are specified then commits up to `since-commit` are considered belonging to `default` project.
 

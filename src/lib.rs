@@ -47,6 +47,12 @@ pub fn run(config: config::Config) -> Result<(), Box<dyn std::error::Error>> {
         (None, None) => std::path::PathBuf::from("./"),
     };
 
+    if config.command == Command::CommitTemplate {
+        let output = template.generate_commit_template(std::io::stdin().lock())?;
+        println!("{}", output);
+        return Ok(());
+    }
+
     match (
         &config.project,
         &template.settings.projects_settings.projects,
