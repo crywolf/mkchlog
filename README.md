@@ -224,6 +224,10 @@ To use locally configured githooks for the development you can run in the root d
 
 Alternatively add symlinks in your .git/hooks directory to any of the provided githooks.
 
+To use prepared commit message template use the following command:
+
+`git config --local commit.template .githooks/commit_template.txt`
+
 ## Explanation
 
 (Rationale, idea and motivation by [Kixunil](https://github.com/Kixunil))
