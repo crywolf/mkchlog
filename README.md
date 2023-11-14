@@ -267,3 +267,11 @@ Additionally, we don't want to depend on GitHub so that we can migrate easily if
 
 The minimal supported Rust version is 1.63 - Debian Bookworm.
 This also supports using the crates packaged in Debian - just delete `Cargo.lock` (which contains crates.io shasums of crates - some are slightly different in Debian).
+
+## Support
+
+If you find this tool useful and want to say "thank you" and support further development, you are welcome to send some satoshis to
+
+⚡ `capricorn@getalby.com` (LN adress, NOT an email address!)
+
+Every sat counts! Thank you.
