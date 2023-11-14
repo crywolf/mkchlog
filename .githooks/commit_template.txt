@@ -1,6 +1,5 @@
 #
-# Uncomment 'changelog:' part and at least fill in correct 'section'
-# from the provided list of valid sections above.
+# Fill in correct 'section' from the provided list of valid sections above.
 #
 # First line of the commit message serves as a title in the changelog
 # and thus should be very short.
@@ -9,7 +8,7 @@
 # feel free to be detailed.
 #
 # If you do not want to include your commit message into the changelog,
-# you can use 'changelog: skip' and let rest of the changelog lines commented out.
+# simply use 'changelog: skip' and remove the rest of the changelog: part.
 #
 # For more information how to use the tool, see README.md
 #

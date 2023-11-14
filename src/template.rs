@@ -188,31 +188,56 @@ impl<T: Default> Template<T> {
             }
         }
 
-        out.push_str("#\n");
-        out.push_str("#changelog:\n");
+        out.push_str("\n\n");
+        out.push_str("changelog:\n");
         if !project.is_empty() {
-            out.push_str("#    project: ");
+            out.push_str("    project: ");
             out.push_str(project);
             out.push('\n');
         }
-        out.push_str("#    section:\n");
-        out.push_str("#    inherit: all\n");
+        out.push_str("    section:\n");
+        out.push_str("    inherit: all\n");
 
         out.push_str("#\n");
         out.push_str("# Valid changelog sections:\n#");
 
+        // find longest section+subsection name for indentation
+        let mut longest_section_name_len = 0;
         for (keyword, sec) in &self.changelog_template {
+            let mut new_len = keyword.len();
+            for (keyword, _) in sec.subsections.iter() {
+                new_len += keyword.len() + 1; // plus 1 for subsection separator
+            }
+            if new_len > longest_section_name_len {
+                longest_section_name_len = new_len;
+            }
+        }
+
+        let spaces = 2;
+        for (keyword, sec) in &self.changelog_template {
+            let keyword_len = keyword.len();
             out.push('\n');
             out.push_str("# * ");
             out.push_str(keyword);
+
             if sec.subsections.is_empty() {
-                out.push_str("\t# ");
+                let indentation = longest_section_name_len - keyword_len + spaces;
+                for _i in 0..indentation {
+                    out.push(' ');
+                }
                 out.push_str(&sec.title);
             } else {
                 for (keyword, subsec) in sec.subsections.iter() {
+                    let sub_keyword_len = keyword.len();
+                    let indentation =
+                        longest_section_name_len - keyword_len - sub_keyword_len - 1 + spaces;
+
                     out.push(':');
                     out.push_str(keyword);
-                    out.push_str("\t# ");
+                    for _i in 0..indentation {
+                        out.push(' ');
+                    }
+
                     out.push_str(&subsec.title);
                 }
             }
@@ -701,21 +726,21 @@ commit.txt",
 
         let output = template.generate_commit_template(stdio).unwrap();
 
-        let exp_output = "\
-#
-#changelog:
-#    project: main
-#    section:
-#    inherit: all
+        let exp_output = r"
+
+changelog:
+    project: main
+    section:
+    inherit: all
 #
 # Valid changelog sections:
 #
-# * security:vuln_fixes	# Fixed vulnerabilities
-# * features	# New features
-# * bug_fixes	# Fixed bugs
-# * breaking	# Breaking changes
-# * perf	# Performance improvements
-# * dev	# Development";
+# * security:vuln_fixes  Fixed vulnerabilities
+# * features             New features
+# * bug_fixes            Fixed bugs
+# * breaking             Breaking changes
+# * perf                 Performance improvements
+# * dev                  Development";
 
         assert!(output.contains("project: main"));
         assert_eq!(exp_output, output);
@@ -813,20 +838,20 @@ src/config.rs",
 
         let output = template.generate_commit_template(stdio).unwrap();
 
-        let exp_output = "\
-#
-#changelog:
-#    section:
-#    inherit: all
+        let exp_output = r"
+
+changelog:
+    section:
+    inherit: all
 #
 # Valid changelog sections:
 #
-# * security:vuln_fixes	# Fixed vulnerabilities
-# * features	# New features
-# * bug_fixes	# Fixed bugs
-# * breaking	# Breaking changes
-# * perf	# Performance improvements
-# * dev	# Development";
+# * security:vuln_fixes  Fixed vulnerabilities
+# * features             New features
+# * bug_fixes            Fixed bugs
+# * breaking             Breaking changes
+# * perf                 Performance improvements
+# * dev                  Development";
 
         assert!(!output.contains("project:"));
         assert_eq!(exp_output, output);
