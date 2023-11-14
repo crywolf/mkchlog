@@ -188,6 +188,7 @@ impl<T: Default> Template<T> {
             }
         }
 
+        out.push_str("#\n");
         out.push_str("#changelog:\n");
         if !project.is_empty() {
             out.push_str("#    project: ");
@@ -701,6 +702,7 @@ commit.txt",
         let output = template.generate_commit_template(stdio).unwrap();
 
         let exp_output = "\
+#
 #changelog:
 #    project: main
 #    section:
@@ -812,6 +814,7 @@ src/config.rs",
         let output = template.generate_commit_template(stdio).unwrap();
 
         let exp_output = "\
+#
 #changelog:
 #    section:
 #    inherit: all
