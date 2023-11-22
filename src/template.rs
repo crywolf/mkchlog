@@ -195,12 +195,12 @@ impl<T: Default> Template<T> {
         out.push_str("changelog:\n");
         if !projects.is_empty() {
             // TODO: API not yet stabilized
-            out.push_str("    project: ");
+            out.push_str("  project: ");
             out.push_str(&projects.join(" | "));
             out.push('\n');
         }
-        out.push_str("    section:\n");
-        out.push_str("    inherit: all\n");
+        out.push_str("  section:\n");
+        out.push_str("  inherit: all\n");
 
         out.push_str("#\n");
         out.push_str("# Valid changelog sections:\n#");
@@ -732,9 +732,9 @@ commit.txt",
         let exp_output = r"
 
 changelog:
-    project: main
-    section:
-    inherit: all
+  project: main
+  section:
+  inherit: all
 #
 # Valid changelog sections:
 #
@@ -802,9 +802,9 @@ commit.txt",
         let exp_output = r"
 
 changelog:
-    project: main | mkchlog-action
-    section:
-    inherit: all
+  project: main | mkchlog-action
+  section:
+  inherit: all
 #
 # Valid changelog sections:
 #
@@ -913,8 +913,8 @@ src/config.rs",
         let exp_output = r"
 
 changelog:
-    section:
-    inherit: all
+  section:
+  inherit: all
 #
 # Valid changelog sections:
 #

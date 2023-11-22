@@ -8,7 +8,7 @@
 # feel free to be detailed.
 #
 # If you do not want to include your commit message into the changelog,
-# simply use 'changelog: skip' and remove the rest of the changelog: part.
+# simply use 'changelog: skip' and remove or comment out the rest of the changelog: part.
 #
 # For more information how to use the tool, see README.md
 #
