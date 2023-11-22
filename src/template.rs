@@ -147,7 +147,7 @@ impl<T: Default> Template<T> {
         mut changed_files: impl Read,
     ) -> Result<String, Box<dyn Error>> {
         let mut out = String::new();
-        let mut project = "";
+        let mut projects: Vec<&str> = vec![];
         if !self.settings.projects_settings.projects.is_empty() {
             let mut buf = String::new();
             changed_files.read_to_string(&mut buf)?;
@@ -156,43 +156,47 @@ impl<T: Default> Template<T> {
 
             for line in buf.lines() {
                 let file_path = PathBuf::from(line);
-                for (proj, dirs) in allowed_projects {
-                    for dir in dirs {
+                let mut file_found = false;
+                for (allowed_project, allowed_dirs) in allowed_projects {
+                    for dir in allowed_dirs {
+                        if file_found {
+                            break;
+                        }
+
                         if dir == &PathBuf::from(".") && file_path.parent() == Some(Path::new("")) {
                             // file is in main directory
-                            if !project.is_empty() && project != proj {
-                                return Err(
-                                    format!( "Cannot commit files that belong to different projects ({}, {})", project, proj).into(),
-                                 );
+                            if !projects.contains(&allowed_project.as_str()) {
+                                projects.push(allowed_project);
                             }
-                            project = proj;
+                            file_found = true;
                             break;
                         }
                         if file_path.starts_with(dir) {
                             // file is in subdirectory
-                            if !project.is_empty() && project != proj {
-                                return Err(
-                                   format!( "Cannot commit files that belong to different projects ({}, {})", project, proj).into(),
-                                );
+                            if !projects.contains(&allowed_project.as_str()) {
+                                projects.push(allowed_project);
                             }
-                            project = proj;
+                            file_found = true;
                             break;
                         }
                     }
                 }
-            }
-            if project.is_empty() {
-                // projects are configured, but we failed to determine one
-                // so we want to print 'project:' keyword to be filled out by the user
-                project = " ";
+                if !file_found {
+                    return Err(format!(
+                        "Could not determine project for file: '{}'. Is the directory correctly set in the config file?",
+                        file_path.display()
+                    )
+                    .into());
+                }
             }
         }
 
         out.push_str("\n\n");
         out.push_str("changelog:\n");
-        if !project.is_empty() {
+        if !projects.is_empty() {
+            // TODO: API not yet stabilized
             out.push_str("    project: ");
-            out.push_str(project);
+            out.push_str(&projects.join(" | "));
             out.push('\n');
         }
         out.push_str("    section:\n");
@@ -720,7 +724,6 @@ sections:
             "\
 .githooks/commit-msg
 README.md
-src/config.rs
 commit.txt",
         );
 
@@ -747,7 +750,7 @@ changelog:
     }
 
     #[test]
-    fn generate_commit_template_with_mixed_projects() {
+    fn generate_commit_template_with_changed_files_from_different_projects() {
         let f = FileReaderMock::new(
             r#"
 skip-commits-up-to: bc58e6bf2cf640d46aa832e297d0f215f76dfce0
@@ -790,16 +793,85 @@ sections:
 .githooks/commit-msg
 README.md
 mkchlog-action/README.md
-/src/config.rs
+commit.txt",
+        );
+
+        let output = template.generate_commit_template(stdio).unwrap();
+
+        // TODO: correct the test when output is stabilized
+        let exp_output = r"
+
+changelog:
+    project: main | mkchlog-action
+    section:
+    inherit: all
+#
+# Valid changelog sections:
+#
+# * security:vuln_fixes  Fixed vulnerabilities
+# * features             New features
+# * bug_fixes            Fixed bugs
+# * breaking             Breaking changes
+# * perf                 Performance improvements
+# * dev                  Development";
+
+        assert_eq!(exp_output, output);
+    }
+
+    #[test]
+    fn generate_commit_template_fails_when_could_not_determine_project() {
+        let f = FileReaderMock::new(
+            r#"
+skip-commits-up-to: bc58e6bf2cf640d46aa832e297d0f215f76dfce0
+
+projects:
+    list:
+    - main: [".", .github, .githooks]
+    - mkchlog: [mkchlog]
+    - mkchlog-action: [mkchlog-action]
+
+    since-commit: 276aa9e4b013de1646ea57cfcbf74e5966524f68 # projects are mandatory since COMMIT_NUMBER
+    default: mkchlog # commits up to COMMIT_NUMBER are considered belonging to the project NAME
+
+sections:
+    security:
+        title: Security
+        description: This section contains very important security-related changes.
+        subsections:
+            vuln_fixes:
+                title: Fixed vulnerabilities
+    features:
+        title: New features
+    bug_fixes:
+        title: Fixed bugs
+    breaking:
+        title: Breaking changes
+    perf:
+        title: Performance improvements
+    dev:
+        title: Development
+        description: Internal development changes
+"#,
+        );
+
+        let res = Template::<Changes>::new(f);
+        assert!(res.is_ok());
+        let template = res.unwrap();
+        let stdio = FileReaderMock::new(
+            "\
+.githooks/commit-msg
+README.md
+some_new_dir/README.md
 commit.txt",
         );
 
         let res = template.generate_commit_template(stdio);
+
         assert!(res.is_err());
         assert!(res
-            .unwrap_err()
-            .to_string()
-            .starts_with("Cannot commit files that belong to different projects"));
+        .unwrap_err()
+        .to_string()
+        .starts_with("Could not determine project for file: 'some_new_dir/README.md'. Is the directory correctly set in the config file?"));
     }
 
     #[test]
