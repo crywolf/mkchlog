@@ -12,6 +12,21 @@ const YAML_FILE_PROJECTS: &str = "tests/mkchlog_projects.yml";
 const YAML_FILE_SINCE_COMMIT: &str = "tests/mkchlog_projects_since_commit.yml";
 const COMMAND: Command = Command::Generate;
 
+fn generate_changelog(
+    mocked_log: String,
+    yaml_file: &str,
+    project: Option<String>,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let git_cmd = Box::new(GitCmdMock::new(mocked_log));
+    let git = Git::new(git_cmd);
+
+    let f = File::open(yaml_file).unwrap();
+    let mut template = Template::<changelog::Changes>::new(f).unwrap();
+    let mut changelog = Changelog::new(&mut template, git);
+
+    changelog.generate(project, COMMAND)
+}
+
 #[test]
 fn it_produces_correct_output_for_project1() {
     let mocked_log = String::from(
@@ -153,15 +168,8 @@ mkchlog/tests/integration_test.rs
 mkchlog/tests/mkchlog.yml",
     );
 
-    let git_cmd = Box::new(GitCmdMock::new(mocked_log));
-    let git = Git::new(git_cmd);
-
-    let f = File::open(YAML_FILE_PROJECTS).unwrap();
-    let mut template = Template::<changelog::Changes>::new(f).unwrap();
-    let mut changelog = Changelog::new(&mut template, git);
-
     let project = Some("mkchlog".to_owned());
-    let output = changelog.generate(project, COMMAND).unwrap();
+    let output = generate_changelog(mocked_log, YAML_FILE_PROJECTS, project).unwrap();
 
     let exp_output = "\
 ============================================
@@ -312,15 +320,8 @@ mkchlog/tests/integration_test.rs
 mkchlog/tests/mkchlog.yml",
     );
 
-    let git_cmd = Box::new(GitCmdMock::new(mocked_log));
-    let git = Git::new(git_cmd);
-
-    let f = File::open(YAML_FILE_PROJECTS).unwrap();
-    let mut template = Template::<changelog::Changes>::new(f).unwrap();
-    let mut changelog = Changelog::new(&mut template, git);
-
     let project = Some("mkchlog-action".to_owned());
-    let output = changelog.generate(project, COMMAND).unwrap();
+    let output = generate_changelog(mocked_log, YAML_FILE_PROJECTS, project).unwrap();
 
     let exp_output = "\
 ============================================
@@ -344,15 +345,8 @@ This updates the wasm module to one which was compiled with `--release`.
 fn fails_when_called_with_incorrect_project_argument_provided_when_calling_the_app() {
     let mocked_log = String::from("");
 
-    let git_cmd = Box::new(GitCmdMock::new(mocked_log));
-    let git = Git::new(git_cmd);
-
-    let f = File::open(YAML_FILE_PROJECTS).unwrap();
-    let mut template = Template::<changelog::Changes>::new(f).unwrap();
-    let mut changelog = Changelog::new(&mut template, git);
-
     let project = Some("nonsense".to_owned());
-    let res = changelog.generate(project, COMMAND);
+    let res = generate_changelog(mocked_log, YAML_FILE_PROJECTS, project);
 
     assert!(res.is_err());
     assert!(res
@@ -384,15 +378,8 @@ README.md
     ",
     );
 
-    let git_cmd = Box::new(GitCmdMock::new(mocked_log));
-    let git = Git::new(git_cmd);
-
-    let f = File::open(YAML_FILE_PROJECTS).unwrap();
-    let mut template = Template::<changelog::Changes>::new(f).unwrap();
-    let mut changelog = Changelog::new(&mut template, git);
-
     let project = Some("mkchlog".to_owned());
-    let res = changelog.generate(project, COMMAND);
+    let res = generate_changelog(mocked_log, YAML_FILE_PROJECTS, project);
 
     assert!(res.is_err());
     assert!(res.unwrap_err().to_string().starts_with(
@@ -422,15 +409,8 @@ README.md
 src/config.rs",
     );
 
-    let git_cmd = Box::new(GitCmdMock::new(mocked_log));
-    let git = Git::new(git_cmd);
-
-    let f = File::open(YAML_FILE_PROJECTS).unwrap();
-    let mut template = Template::<changelog::Changes>::new(f).unwrap();
-    let mut changelog = Changelog::new(&mut template, git);
-
     let project = Some("mkchlog".to_owned());
-    let res = changelog.generate(project, COMMAND);
+    let res = generate_changelog(mocked_log, YAML_FILE_PROJECTS, project);
 
     assert!(res.is_err());
     assert!(res
@@ -562,15 +542,8 @@ tests/integration_test.rs
 tests/mkchlog.yml",
     );
 
-    let git_cmd = Box::new(GitCmdMock::new(mocked_log));
-    let git = Git::new(git_cmd);
-
-    let f = File::open(YAML_FILE_SINCE_COMMIT).unwrap();
-    let mut template = Template::<changelog::Changes>::new(f).unwrap();
-    let mut changelog = Changelog::new(&mut template, git);
-
     let project = Some("mkchlog".to_owned());
-    let output = changelog.generate(project, COMMAND).unwrap();
+    let output = generate_changelog(mocked_log, YAML_FILE_SINCE_COMMIT, project).unwrap();
 
     let exp_output = "\
 ============================================
@@ -720,15 +693,8 @@ tests/integration_test.rs
 tests/mkchlog.yml",
     );
 
-    let git_cmd = Box::new(GitCmdMock::new(mocked_log));
-    let git = Git::new(git_cmd);
-
-    let f = File::open(YAML_FILE_SINCE_COMMIT).unwrap();
-    let mut template = Template::<changelog::Changes>::new(f).unwrap();
-    let mut changelog = Changelog::new(&mut template, git);
-
     let project = Some("mkchlog-action".to_owned());
-    let output = changelog.generate(project, COMMAND).unwrap();
+    let output = generate_changelog(mocked_log, YAML_FILE_SINCE_COMMIT, project).unwrap();
 
     let exp_output = "\
 ============================================

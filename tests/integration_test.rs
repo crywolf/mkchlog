@@ -8,11 +8,21 @@ use mkchlog::config::Command;
 use mkchlog::git::Git;
 use mkchlog::template::Template;
 use mocks::GitCmdMock;
-use std::fs::File;
 
 const YAML_FILE: &str = "tests/mkchlog.yml";
 const PROJECT_NONE: Option<String> = None;
 const COMMAND: Command = Command::Generate;
+
+fn generate_changelog(mocked_log: String) -> Result<String, Box<dyn std::error::Error>> {
+    let git_cmd = Box::new(GitCmdMock::new(mocked_log));
+    let git = Git::new(git_cmd);
+
+    let f = std::fs::File::open(YAML_FILE).unwrap();
+    let mut template = Template::<changelog::Changes>::new(f).unwrap();
+    let mut changelog = Changelog::new(&mut template, git);
+
+    changelog.generate(PROJECT_NONE, COMMAND)
+}
 
 #[test]
 fn it_produces_correct_output() {
@@ -171,14 +181,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
 src/changelog.rs",
     );
 
-    let git_cmd = Box::new(GitCmdMock::new(mocked_log));
-    let git = Git::new(git_cmd);
-
-    let f = File::open(YAML_FILE).unwrap();
-    let mut template = Template::<changelog::Changes>::new(f).unwrap();
-    let mut changelog = Changelog::new(&mut template, git);
-
-    let output = changelog.generate(PROJECT_NONE, COMMAND).unwrap();
+    let output = generate_changelog(mocked_log).unwrap();
 
     let exp_output = "\
 ============================================
@@ -255,14 +258,7 @@ src/crypto/chacha20poly1305.cpp
 src/crypto/chacha20poly1305.h",
     );
 
-    let git_cmd = Box::new(GitCmdMock::new(mocked_log));
-    let git = Git::new(git_cmd);
-
-    let f = File::open(YAML_FILE).unwrap();
-    let mut template = Template::<changelog::Changes>::new(f).unwrap();
-    let mut changelog = Changelog::new(&mut template, git);
-
-    let output = changelog.generate(PROJECT_NONE, COMMAND).unwrap();
+    let output = generate_changelog(mocked_log).unwrap();
 
     let exp_output = "\
 ============================================
@@ -350,14 +346,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
 src/changelog.rs",
     );
 
-    let git_cmd = Box::new(GitCmdMock::new(mocked_log));
-    let git = Git::new(git_cmd);
-
-    let f = File::open(YAML_FILE).unwrap();
-    let mut template = Template::<changelog::Changes>::new(f).unwrap();
-    let mut changelog = Changelog::new(&mut template, git);
-
-    let output = changelog.generate(PROJECT_NONE, COMMAND).unwrap();
+    let output = generate_changelog(mocked_log).unwrap();
 
     let exp_output = "\
 ============================================
@@ -401,14 +390,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
 src/changelog.rs",
     );
 
-    let git_cmd = Box::new(GitCmdMock::new(mocked_log));
-    let git = Git::new(git_cmd);
-
-    let f = File::open(YAML_FILE).unwrap();
-    let mut template = Template::<changelog::Changes>::new(f).unwrap();
-    let mut changelog = Changelog::new(&mut template, git);
-
-    let res = changelog.generate(PROJECT_NONE, COMMAND);
+    let res = generate_changelog(mocked_log);
 
     assert!(res.is_err());
     assert!(res
@@ -437,14 +419,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
 src/changelog.rs",
     );
 
-    let git_cmd = Box::new(GitCmdMock::new(mocked_log));
-    let git = Git::new(git_cmd);
-
-    let f = File::open(YAML_FILE).unwrap();
-    let mut template = Template::<changelog::Changes>::new(f).unwrap();
-    let mut changelog = Changelog::new(&mut template, git);
-
-    let res = changelog.generate(PROJECT_NONE, COMMAND);
+    let res = generate_changelog(mocked_log);
 
     assert!(res.is_err());
     assert!(res
@@ -483,14 +458,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
 src/changelog.rs",
     );
 
-    let git_cmd = Box::new(GitCmdMock::new(mocked_log));
-    let git = Git::new(git_cmd);
-
-    let f = File::open(YAML_FILE).unwrap();
-    let mut template = Template::<changelog::Changes>::new(f).unwrap();
-    let mut changelog = Changelog::new(&mut template, git);
-
-    let output = changelog.generate(PROJECT_NONE, COMMAND).unwrap();
+    let output = generate_changelog(mocked_log).unwrap();
 
     let exp_output = "\
 ============================================
@@ -548,14 +516,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
 .github/workflows/ci.yml",
     );
 
-    let git_cmd = Box::new(GitCmdMock::new(mocked_log));
-    let git = Git::new(git_cmd);
-
-    let f = File::open(YAML_FILE).unwrap();
-    let mut template = Template::<changelog::Changes>::new(f).unwrap();
-    let mut changelog = Changelog::new(&mut template, git);
-
-    let output = changelog.generate(PROJECT_NONE, COMMAND).unwrap();
+    let output = generate_changelog(mocked_log).unwrap();
 
     let exp_output = "\
 ============================================
@@ -608,7 +569,7 @@ src/crypto/chacha20poly1305.h",
     let git_cmd = Box::new(GitCmdMock::new(mocked_log));
     let git = Git::new(git_cmd);
 
-    let f = File::open(YAML_FILE).unwrap();
+    let f = std::fs::File::open(YAML_FILE).unwrap();
     let mut template = Template::<changelog::Changes>::new(f).unwrap();
     let mut changelog = Changelog::new(&mut template, git);
 
@@ -643,7 +604,7 @@ src/changelog.rs",
     let git_cmd = Box::new(GitCmdMock::new(mocked_log));
     let git = Git::new(git_cmd);
 
-    let f = File::open(YAML_FILE).unwrap();
+    let f = std::fs::File::open(YAML_FILE).unwrap();
     let mut template = Template::<changelog::Changes>::new(f).unwrap();
     let mut changelog = Changelog::new(&mut template, git);
 
