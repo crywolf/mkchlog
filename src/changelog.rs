@@ -9,7 +9,7 @@ use regex::Regex;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::Display;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 const FORCE_CHECK_ALL_PROJECTS: &str = "force_check_all_projects";
 
@@ -228,37 +228,6 @@ impl CommitChangelog {
                     changelog_project, self.commit.raw_data
                 )
                 .into());
-            }
-
-            if default_project.is_none() {
-                // default project is set only for commits that were created before projects were configured in the template file
-                // check if changed files belong to the project specified in changelog
-
-                if let Some(dirs) = allowed_projects.get(changelog_project) {
-                    // iterate through all directories belonging to the project
-                    for file in &self.commit.changed_files {
-                        let mut file_belongs_to_project = false;
-                        for dir in dirs {
-                            if dir == &PathBuf::from(".") && file.parent() == Some(Path::new("")) {
-                                // file is in main directory
-                                file_belongs_to_project = true;
-                                break;
-                            }
-                            if file.starts_with(dir) {
-                                // file is in subdirectory
-                                file_belongs_to_project = true;
-                                break;
-                            }
-                        }
-                        if !file_belongs_to_project {
-                            #[rustfmt::skip]
-                            return Err(format!("File: '{}' does not belong to project '{}' in commit:\n>>> {}",
-                                file.display(),
-                                changelog_project,
-                                self.commit.raw_data).into());
-                        }
-                    }
-                }
             }
 
             // return when commit belongs to different project than user asked for
@@ -492,12 +461,7 @@ Date:   Tue Jun 13 16:27:59 2023 +0200
                     directory. If you run this in such
                     enviroment you should update ASAP. If your
                     working directory is **not** accessible by
-                    unprivileged users you don't need to worry.
-
-src/bip324.cpp
-src/bip324.h
-src/crypto/chacha20poly1305.cpp
-src/crypto/chacha20poly1305.h";
+                    unprivileged users you don't need to worry.";
 
         let exp = vec![
                 "section: security:vuln_fixes",
@@ -544,12 +508,7 @@ Date:   Tue Jun 13 16:27:59 2023 +0200
                 directory. If you run this in such
                 enviroment you should update ASAP. If your
                 working directory is **not** accessible by
-                unprivileged users you don't need to worry.
-
-src/bip324.cpp
-src/bip324.h
-src/crypto/chacha20poly1305.cpp
-src/crypto/chacha20poly1305.h";
+                unprivileged users you don't need to worry.";
 
         let exp = vec![
                 "section: security:vuln_fixes",
@@ -574,9 +533,7 @@ Date:   Tue Jun 13 16:27:59 2023 +0200
 
     changelog:
         inherit: all
-        section: features
-
-src/core_write.cpp";
+        section: features";
 
         let exp = vec!["inherit: all", "section: features"];
 

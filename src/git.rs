@@ -71,9 +71,6 @@ Date:   Tue Jun 13 16:25:29 2023 +0200
 
     changelog: skip
 
-README.md
-src/template.rs
-
 commit 62db026b0ead7f0659df10c70e402c70ede5d7dd
 Author: Cry Wolf <cry.wolf@centrum.cz>
 Date:   Tue Jun 13 16:24:22 2023 +0200
@@ -86,9 +83,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
 
     changelog:
         inherit: all
-        section: features
-
-src/lib.rs";
+        section: features";
 
             Ok(ouput.to_string())
         }

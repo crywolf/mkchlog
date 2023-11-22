@@ -1,3 +1,5 @@
+//! Integration tests with multi-project settings
+
 mod mocks;
 
 use mkchlog::changelog;
@@ -46,8 +48,6 @@ Date:   Sun Oct 25 10:12:50 2023 +0200
         inherit: title
         title-is-enough: true
 
-mkchlog-action/README.md
-
 commit b532ebcb0a214fbc69a5f5138e43eec14ea1a9dc
 Author: Cry Wolf <cry.wolf@centrum.cz>
 Date:   Tue Oct 24 19:17:09 2023 +0200
@@ -59,8 +59,6 @@ Date:   Tue Oct 24 19:17:09 2023 +0200
         section: dev
         inherit: title
         title-is-enough: true
-
-mkchlog/.github/workflows/ci.yml
 
 commit cdbfeb9b2576e07f12da569c54f5ec3cd7b9c0fc
 Author: Cry Wolf <cry.wolf@centrum.cz>
@@ -77,12 +75,6 @@ Date:   Sun Oct 22 23:08:57 2023 +0200
         inherit: all
         project: mkchlog
 
-mkchlog/.mkchlog.yml
-mkchlog/README.md
-mkchlog/src/lib.rs
-mkchlog/src/template.rs
-mkchlog/tests/mkchlog.yml
-
 commit ac0df22c6b5c9e4ec387b61b7997d420a1b6d36c
 Author: Vojtěch Toman <cry.wolf@centrum.cz>
 Date:   Tue Oct 31 13:46:59 2023 +0100
@@ -96,9 +88,6 @@ Date:   Tue Oct 31 13:46:59 2023 +0100
         section: features
         inherit: all
 
-.githooks/commit-msg
-README.md
-
 commit 11964cbb5ac05c5a19d75b5bebcc74ebc867e438
 Author: Martin Habovstiak <martin.habovstiak@gmail.com>
 Date:   Sun Oct 22 10:12:50 2023 +0200
@@ -111,9 +100,6 @@ Date:   Sun Oct 22 10:12:50 2023 +0200
         project: mkchlog-action
         section: perf
         inherit: all
-
-mkchlog-action/node_modules/libmkchlog/libmkchlog.js
-mkchlog-action/node_modules/libmkchlog/libmkchlog_bg.wasm
 
 commit 22e27ce785698c4a873eb5e2ad9e0cf9c849be8d
 Author: Martin Habovstiak <martin.habovstiak@gmail.com>
@@ -134,13 +120,6 @@ Date:   Sun Oct 22 09:12:50 2023 +0200
         section: features
         title-is-enough: true
 
-mkchlog/.github/workflows/test.yml
-mkchlog/Cargo.lock
-mkchlog/Cargo.toml
-mkchlog/README.md
-mkchlog/clippy.toml
-mkchlog/src/template.rs
-
 commit 624c947820cba6c0665b84bfc139f209277f2a95
 Author: Martin Habovstiak <martin.habovstiak@gmail.com>
 Date:   Sat Oct 21 19:00:27 2023 +0200
@@ -159,13 +138,7 @@ Date:   Sat Oct 21 19:00:27 2023 +0200
     changelog:
             project: mkchlog
             section: dev
-            title-is-enough: true
-
-mkchlog/.github/workflows/changelog.yml
-mkchlog/.github/workflows/test.yml
-mkchlog/.mkchlog.yml
-mkchlog/tests/integration_test.rs
-mkchlog/tests/mkchlog.yml",
+            title-is-enough: true",
     );
 
     let project = Some("mkchlog".to_owned());
@@ -214,8 +187,6 @@ Date:   Sun Oct 25 10:12:50 2023 +0200
         inherit: title
         title-is-enough: true
 
-mkchlog-action/README.md
-
 commit b532ebcb0a214fbc69a5f5138e43eec14ea1a9dc
 Author: Cry Wolf <cry.wolf@centrum.cz>
 Date:   Tue Oct 24 19:17:09 2023 +0200
@@ -227,8 +198,6 @@ Date:   Tue Oct 24 19:17:09 2023 +0200
         section: dev
         inherit: title
         title-is-enough: true
-
-mkchlog/.github/workflows/ci.yml
 
 commit cdbfeb9b2576e07f12da569c54f5ec3cd7b9c0fc
 Author: Cry Wolf <cry.wolf@centrum.cz>
@@ -245,12 +214,6 @@ Date:   Sun Oct 22 23:08:57 2023 +0200
         inherit: all
         project: mkchlog
 
-mkchlog/.mkchlog.yml
-mkchlog/README.md
-mkchlog/src/lib.rs
-mkchlog/src/template.rs
-mkchlog/tests/mkchlog.yml
-
 commit 11964cbb5ac05c5a19d75b5bebcc74ebc867e438
 Author: Martin Habovstiak <martin.habovstiak@gmail.com>
 Date:   Sun Oct 22 10:12:50 2023 +0200
@@ -263,9 +226,6 @@ Date:   Sun Oct 22 10:12:50 2023 +0200
         project: mkchlog-action
         section: perf
         inherit: all
-
-mkchlog-action/node_modules/libmkchlog/libmkchlog.js
-mkchlog-action/node_modules/libmkchlog/libmkchlog_bg.wasm
 
 commit 22e27ce785698c4a873eb5e2ad9e0cf9c849be8d
 Author: Martin Habovstiak <martin.habovstiak@gmail.com>
@@ -286,13 +246,6 @@ Date:   Sun Oct 22 09:12:50 2023 +0200
         section: features
         title-is-enough: true
 
-mkchlog/.github/workflows/test.yml
-mkchlog/Cargo.lock
-mkchlog/mkchlog/Cargo.toml
-mkchlog/README.md
-mkchlog/clippy.toml
-mkchlog/src/template.rs
-
 commit 624c947820cba6c0665b84bfc139f209277f2a95
 Author: Martin Habovstiak <martin.habovstiak@gmail.com>
 Date:   Sat Oct 21 19:00:27 2023 +0200
@@ -311,13 +264,7 @@ Date:   Sat Oct 21 19:00:27 2023 +0200
     changelog:
             project: mkchlog
             section: dev
-            title-is-enough: true
-
-mkchlog/.github/workflows/changelog.yml
-mkchlog/.github/workflows/test.yml
-mkchlog/.mkchlog.yml
-mkchlog/tests/integration_test.rs
-mkchlog/tests/mkchlog.yml",
+            title-is-enough: true",
     );
 
     let project = Some("mkchlog-action".to_owned());
@@ -372,10 +319,7 @@ Date:   Sun Oct 25 10:12:50 2023 +0200
         project: wrong-name
         section: doc
         inherit: title
-        title-is-enough: true
-
-README.md
-    ",
+        title-is-enough: true",
     );
 
     let project = Some("mkchlog".to_owned());
@@ -385,38 +329,6 @@ README.md
     assert!(res.unwrap_err().to_string().starts_with(
         "Incorrect (not allowed in config file) project name 'wrong-name' in changelog message"
     ));
-}
-
-#[test]
-fn fails_when_commit_changes_files_that_are_not_in_project_directory() {
-    let mocked_log = String::from(
-        "\
-commit ac0df22c6b5c9e4ec387b61b7997d420a1b6d36c
-Author: Vojtěch Toman <cry.wolf@centrum.cz>
-Date:   Tue Oct 31 13:46:59 2023 +0100
-
-    Allow parsing commit(s) from stdin
-
-    It is possible to check the commit before it is actually commited. Useful to use in a commit-msg git hook.
-
-    changelog:
-        project: main
-        section: features
-        inherit: all
-
-.githooks/commit-msg
-README.md
-src/config.rs",
-    );
-
-    let project = Some("mkchlog".to_owned());
-    let res = generate_changelog(mocked_log, YAML_FILE_PROJECTS, project);
-
-    assert!(res.is_err());
-    assert!(res
-        .unwrap_err()
-        .to_string()
-        .starts_with("File: 'src/config.rs' does not belong to project 'main' in commit:"));
 }
 
 #[test]
@@ -438,8 +350,6 @@ Date:   Sun Oct 25 10:12:50 2023 +0200
         inherit: title
         title-is-enough: true
 
-mkchlog-action/README.md
-
 commit b532ebcb0a214fbc69a5f5138e43eec14ea1a9dc
 Author: Cry Wolf <cry.wolf@centrum.cz>
 Date:   Tue Oct 24 19:17:09 2023 +0200
@@ -451,8 +361,6 @@ Date:   Tue Oct 24 19:17:09 2023 +0200
         section: dev
         inherit: title
         title-is-enough: true
-
-mkchlog/.github/workflows/ci.yml
 
 commit cdbfeb9b2576e07f12da569c54f5ec3cd7b9c0fc
 Author: Cry Wolf <cry.wolf@centrum.cz>
@@ -469,12 +377,6 @@ Date:   Sun Oct 22 23:08:57 2023 +0200
         inherit: all
         project: mkchlog
 
-mkchlog/.mkchlog.yml
-mkchlog/README.md
-mkchlog/src/lib.rs
-mkchlog/src/template.rs
-mkchlog/tests/mkchlog.yml
-
 commit 11964cbb5ac05c5a19d75b5bebcc74ebc867e438
 Author: Martin Habovstiak <martin.habovstiak@gmail.com>
 Date:   Sun Oct 22 10:12:50 2023 +0200
@@ -487,9 +389,6 @@ Date:   Sun Oct 22 10:12:50 2023 +0200
         project: mkchlog-action
         section: perf
         inherit: all
-
-mkchlog-action/node_modules/libmkchlog/libmkchlog.js
-mkchlog-action/node_modules/libmkchlog/libmkchlog_bg.wasm
 
 commit 22e27ce785698c4a873eb5e2ad9e0cf9c849be8d
 Author: Martin Habovstiak <martin.habovstiak@gmail.com>
@@ -509,13 +408,6 @@ Date:   Sun Oct 22 09:12:50 2023 +0200
         section: features
         title-is-enough: true
 
-.github/workflows/test.yml
-Cargo.lock
-Cargo.toml
-README.md
-clippy.toml
-src/template.rs
-
 commit 624c947820cba6c0665b84bfc139f209277f2a95
 Author: Martin Habovstiak <martin.habovstiak@gmail.com>
 Date:   Sat Oct 21 19:00:27 2023 +0200
@@ -533,13 +425,7 @@ Date:   Sat Oct 21 19:00:27 2023 +0200
 
     changelog:
             section: dev
-            title-is-enough: true
-
-.github/workflows/changelog.yml
-.github/workflows/test.yml
-.mkchlog.yml
-tests/integration_test.rs
-tests/mkchlog.yml",
+            title-is-enough: true",
     );
 
     let project = Some("mkchlog".to_owned());
@@ -588,8 +474,6 @@ Date:   Sun Oct 25 10:12:50 2023 +0200
         inherit: title
         title-is-enough: true
 
-mkchlog-action/README.md
-
 commit b532ebcb0a214fbc69a5f5138e43eec14ea1a9dc
 Author: Cry Wolf <cry.wolf@centrum.cz>
 Date:   Tue Oct 24 19:17:09 2023 +0200
@@ -601,9 +485,6 @@ Date:   Tue Oct 24 19:17:09 2023 +0200
         section: dev
         inherit: title
         title-is-enough: true
-
-mkchlog/.github/workflows/ci.yml
-mkchlog/README.md
 
 commit cdbfeb9b2576e07f12da569c54f5ec3cd7b9c0fc
 Author: Cry Wolf <cry.wolf@centrum.cz>
@@ -620,12 +501,6 @@ Date:   Sun Oct 22 23:08:57 2023 +0200
         inherit: all
         project: mkchlog
 
-mkchlog/.mkchlog.yml
-mkchlog/README.md
-mkchlog/src/lib.rs
-mkchlog/src/template.rs
-mkchlog/tests/mkchlog.yml
-
 commit 11964cbb5ac05c5a19d75b5bebcc74ebc867e438
 Author: Martin Habovstiak <martin.habovstiak@gmail.com>
 Date:   Sun Oct 22 10:12:50 2023 +0200
@@ -638,9 +513,6 @@ Date:   Sun Oct 22 10:12:50 2023 +0200
         project: mkchlog-action
         section: perf
         inherit: all
-
-mkchlog-action/node_modules/libmkchlog/libmkchlog.js
-mkchlog-action/node_modules/libmkchlog/libmkchlog_bg.wasm
 
 commit 22e27ce785698c4a873eb5e2ad9e0cf9c849be8d
 Author: Martin Habovstiak <martin.habovstiak@gmail.com>
@@ -660,13 +532,6 @@ Date:   Sun Oct 22 09:12:50 2023 +0200
         section: features
         title-is-enough: true
 
-.github/workflows/test.yml
-Cargo.lock
-Cargo.toml
-README.md
-clippy.toml
-src/template.rs
-
 commit 624c947820cba6c0665b84bfc139f209277f2a95
 Author: Martin Habovstiak <martin.habovstiak@gmail.com>
 Date:   Sat Oct 21 19:00:27 2023 +0200
@@ -684,13 +549,7 @@ Date:   Sat Oct 21 19:00:27 2023 +0200
 
     changelog:
             section: dev
-            title-is-enough: true
-
-.github/workflows/changelog.yml
-.github/workflows/test.yml
-.mkchlog.yml
-tests/integration_test.rs
-tests/mkchlog.yml",
+            title-is-enough: true",
     );
 
     let project = Some("mkchlog-action".to_owned());
@@ -716,7 +575,7 @@ This updates the wasm module to one which was compiled with `--release`.
 
 #[test]
 fn when_called_with_check_command_fails_if_commits_are_invalid() {
-    // test that we can call it without providing project name when just checking commits, not generating changelog
+    // test that we can call the command without providing project name when just checking commits, not generating changelog
     // and it will correctly find commit with invalid or missing project
 
     let mocked_log = String::from(
@@ -733,9 +592,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
 
     changelog:
         inherit: all
-        section: feature
-
-src/changelog.rs",
+        section: feature",
     );
 
     let git_cmd = Box::new(GitCmdMock::new(mocked_log));

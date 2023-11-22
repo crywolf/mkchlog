@@ -1,13 +1,7 @@
 #!/bin/sh
 COMMIT_MSG_FILE=$1
 
-FAKE_COMMIT_MESSAGE="$(cat "$COMMIT_MSG_FILE" | grep -v '^#')"
-
-MODIFIED_FILES=$(git diff-index --cached --name-only HEAD)
-
-FAKE_COMMIT_MESSAGE="${FAKE_COMMIT_MESSAGE}\n\n${MODIFIED_FILES}"
-
-if ! echo "$FAKE_COMMIT_MESSAGE" | cargo run -- --from-stdin check ; then
-  >&2 echo "Please follow mkchlog rules"
+if ! cat "$COMMIT_MSG_FILE" | grep -v '^#' | cargo run -- --from-stdin check ; then
+  >&2 echo "---> Please follow mkchlog rules"
   exit 1
 fi

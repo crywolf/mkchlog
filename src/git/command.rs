@@ -23,9 +23,7 @@ impl super::GitLogCommand for GitLogCmd {
             .arg("-C")
             .arg(&self.path)
             .arg("log")
-            .arg("--no-merges")
-            .arg("--stat")
-            .arg("--name-only");
+            .arg("--no-merges");
 
         if self.commit_id.is_some() {
             // add argument: git log 7c85bee4303d56bededdfacf8fbb7bdc68e2195b..HEAD
