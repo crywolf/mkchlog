@@ -26,7 +26,7 @@ impl super::GitLogCommand for Stdin {
 
         if !buf.starts_with("commit ") {
             // prepend fake header to make it look like valid commit
-            // when reading not-yet-commited commit
+            // when reading not-yet-committed commit
             buf.insert_str(0, "commit FROM STDIN\n\n")
         }
 

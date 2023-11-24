@@ -81,7 +81,7 @@ Date:   Tue Oct 31 13:46:59 2023 +0100
 
     Allow parsing commit(s) from stdin
 
-    It is possible to check the commit before it is actually commited. Useful to use in a commit-msg git hook.
+    It is possible to check the commit before it is actually committed. Useful to use in a commit-msg git hook.
 
     changelog:
         project:main

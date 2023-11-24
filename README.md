@@ -181,13 +181,19 @@ Some repositories host multiple projects that are related but should have disjoi
 # .mkchlog.yml
 # top level
 projects:
-    list:  # list of allowed projects
-    - main: [".", .github, .githooks] # name: [directory1, directory2, ...]
-    - mkchlog: [mkchlog] # name: [directory]
-    - mkchlog-action: [mkchlog-action] # name: [directory]
+  list: # list of allowed projects
+    - project:
+        name: main
+        dirs: [".", .github, .githooks] # list of directories the project is contained in
+    - project:
+        name: mkchlog
+        dirs: [mkchlog]
+    - project:
+        name: mkchlog-action
+        dirs: [mkchlog-action]
 
-    since-commit: 11964cbb5ac05c5a19d75b5bebcc74ebc867e438 # projects are mandatory since COMMIT_NUMBER [optional]
-    default: mkchlog # commits up to COMMIT_NUMBER are considered belonging to the project NAME [optional]
+  since-commit: 11964cbb5ac05c5a19d75b5bebcc74ebc867e438 # projects are mandatory since COMMIT_NUMBER [optional]
+  default: mkchlog # commits up to COMMIT_NUMBER are considered belonging to the project NAME [optional]
 ```
 
 If projects list is provided then git commit must contain `project: x` in the changelog message where `x` is one of the specified project names. After a project name, the list of directories the project is contained in, must be provided. Project `main` in the example above is the "root" project that contains all files in the project root directory, plus other directories that do not belong to other projects.

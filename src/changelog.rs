@@ -9,7 +9,6 @@ use regex::Regex;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::Display;
-use std::path::PathBuf;
 
 const FORCE_CHECK_ALL_PROJECTS: &str = "force_check_all_projects";
 
@@ -36,7 +35,8 @@ where
     ) -> Result<String, Box<dyn Error>> {
         let mut project = project;
         let settings = &self.template.settings;
-        let allowed_projects = &settings.projects_settings.projects.clone();
+        let allowed_projects_map = settings.projects_settings.projects.clone();
+        let allowed_projects: Vec<&str> = allowed_projects_map.keys().map(String::as_str).collect();
         let default_project_from_config = &settings.projects_settings.default_project.clone();
         let projects_since_commit = settings
             .projects_settings
@@ -50,7 +50,7 @@ where
 
         // check if user provided project name matches the project name in YAML config file
         if let Some(project_name) = &project {
-            if !&allowed_projects.contains_key(project_name) {
+            if !&allowed_projects.contains(&project_name.as_str()) {
                 return Err(
                     format!("Project '{}' not configured in config file", project_name).into(),
                 );
@@ -85,7 +85,7 @@ where
             // insert changelog entries from commits to changelog_template
             commit_changelog.parse(
                 changelog_template,
-                allowed_projects,
+                &allowed_projects,
                 &project,
                 default_project,
             )?;
@@ -198,7 +198,7 @@ impl CommitChangelog {
     pub fn parse<T>(
         &mut self,
         changelog_template: &mut ChangelogTemplate<T>,
-        allowed_projects: &HashMap<String, Vec<PathBuf>>,
+        allowed_projects: &[&str],
         project: &Option<String>,
         default_project: &Option<String>,
     ) -> Result<(), Box<dyn Error>>
@@ -222,7 +222,7 @@ impl CommitChangelog {
                 ))?
             };
 
-            if !allowed_projects.contains_key(changelog_project) {
+            if !allowed_projects.contains(&changelog_project) {
                 return Err(format!(
                     "Incorrect (not allowed in config file) project name '{}' in changelog message:\n>>> {}",
                     changelog_project, self.commit.raw_data

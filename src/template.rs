@@ -1,7 +1,7 @@
 //! Template represents parsed YAML config file
 use indexmap::IndexMap;
-use serde_yaml::{Mapping, Value};
-use std::collections::HashMap;
+use serde::Deserialize;
+use serde_yaml::Value;
 use std::error::Error;
 use std::io::Read;
 use std::path::{Path, PathBuf};
@@ -25,7 +25,7 @@ pub struct Settings {
 /// Multi-project repository settings from YAML config file
 #[derive(Debug)]
 pub struct ProjectsSettings {
-    pub projects: HashMap<String, Vec<PathBuf>>,
+    pub projects: IndexMap<String, Project>,
     pub since_commit: Option<String>,
     pub default_project: Option<String>,
 }
@@ -154,10 +154,13 @@ impl<T: Default> Template<T> {
 
             let allowed_projects = &self.settings.projects_settings.projects;
 
+            // determine project name from directory/directories of committed files
             for line in buf.lines() {
                 let file_path = PathBuf::from(line);
                 let mut file_found = false;
-                for (allowed_project, allowed_dirs) in allowed_projects {
+
+                for (name, project) in allowed_projects {
+                    let allowed_dirs = &project.dirs;
                     for dir in allowed_dirs {
                         if file_found {
                             break;
@@ -165,16 +168,16 @@ impl<T: Default> Template<T> {
 
                         if dir == &PathBuf::from(".") && file_path.parent() == Some(Path::new("")) {
                             // file is in main directory
-                            if !projects.contains(&allowed_project.as_str()) {
-                                projects.push(allowed_project);
+                            if !projects.contains(&name.as_str()) {
+                                projects.push(name);
                             }
                             file_found = true;
                             break;
                         }
                         if file_path.starts_with(dir) {
                             // file is in subdirectory
-                            if !projects.contains(&allowed_project.as_str()) {
-                                projects.push(allowed_project);
+                            if !projects.contains(&name.as_str()) {
+                                projects.push(name);
                             }
                             file_found = true;
                             break;
@@ -292,12 +295,12 @@ impl<T: Default> std::str::FromStr for Template<T> {
             })
             .transpose()?;
 
-        let mut projects: HashMap<String, Vec<PathBuf>> = HashMap::new();
+        let mut projects: IndexMap<String, Project> = IndexMap::new();
         let mut since_commit = None;
         let mut default_project = None;
 
         if let Some(projects_sec) = projects_sec {
-            let proj_list = projects_sec
+            let projects_sec_list = projects_sec
                 .get(&Value::from("list"))
                 .map(|v| {
                     v.as_sequence().map(ToOwned::to_owned).ok_or(
@@ -307,43 +310,24 @@ impl<T: Default> std::str::FromStr for Template<T> {
                 .transpose()?
                 .ok_or("Missing 'list' key in config file")?;
 
-            let proj_list_map: Vec<Mapping> = proj_list
+            let projects_list = projects_sec_list
                 .iter()
-                .map(|v| {
-                    v.as_mapping()
-                        .map(ToOwned::to_owned)
-                        .ok_or("Malformed 'projects' key in config file")
-                })
-                .collect::<Result<Vec<Mapping>, &str>>()?;
+                .map(|v| serde_yaml::from_value::<ProjectWrapper>(v.clone()))
+                .collect::<Result<Vec<_>, _>>();
 
-            #[rustfmt::skip]
-            let projects_list: Vec<(_, _)> = proj_list_map
-                .iter()
-                .flat_map(|v| {
-                    v.iter()
-                    .map(|(name, dirs)| {
-                        (
-                        name.as_str().ok_or("Malformed project name in config file"),
-                        dirs.as_sequence()
-                            .ok_or("Malformed directories list in config file")
-                            .map(|s| {
-                                s.iter()
-                                    .map(|d|
-                                        d.as_str()
-                                            .ok_or("Malformed directory name in config file"))
-                                    .collect::<Vec<_>>()
-                            })
-                        )
-                    })
-                    .collect::<Vec<_>>()
-                })
-                .collect::<Vec<_>>();
+            if projects_list.is_err() {
+                return Err(format!(
+                    "Malformed list of projects in config file: {}",
+                    projects_list.expect_err("we have error message")
+                )
+                .into());
+            }
 
-            for (name, dirs) in projects_list {
-                let name = name?.to_owned();
-                let dirs: Result<Vec<_>, _> = dirs?.into_iter().collect();
-                let dirs: Vec<PathBuf> = dirs?.iter().map(PathBuf::from).collect();
-                projects.insert(name.clone(), dirs);
+            let projects_list: Vec<Project> =
+                projects_list?.into_iter().map(|pw| pw.project).collect();
+
+            for project in projects_list {
+                projects.insert(project.name.clone(), project);
             }
 
             since_commit = projects_sec
@@ -394,6 +378,17 @@ impl<T: Default> std::str::FromStr for Template<T> {
     }
 }
 
+#[derive(Debug, Deserialize)]
+pub struct ProjectWrapper {
+    project: Project,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct Project {
+    name: String,
+    dirs: Vec<PathBuf>,
+}
+
 /// Data structure to store changelog section data
 #[derive(Debug, Clone, PartialEq)]
 pub struct Section<T: Default> {
@@ -407,7 +402,7 @@ pub struct Section<T: Default> {
 mod tests {
     use super::Template;
     use crate::changelog::Changes;
-    use std::{collections::HashMap, io::Cursor, path::PathBuf};
+    use std::io::Cursor;
 
     pub struct FileReaderMock {
         content: Cursor<String>,
@@ -427,48 +422,54 @@ mod tests {
         }
     }
 
+    const YAML_TEMPLATE: &str = r#"
+    skip-commits-up-to: bc58e6bf2cf640d46aa832e297d0f215f76dfce0
+
+    projects:
+      list:
+        - project:
+            name: main
+            dirs: [".", .github, .githooks]
+        - project:
+            name: mkchlog
+            dirs: [mkchlog]
+        - project:
+            name: mkchlog-action
+            dirs: [mkchlog-action]
+
+      since-commit: 276aa9e4b013de1646ea57cfcbf74e5966524f68 # projects are mandatory since COMMIT_NUMBER
+      default: mkchlog # commits up to COMMIT_NUMBER are considered belonging to the project NAME
+
+    sections:
+        # section identifier selected by project maintainer
+        security:
+            # The header presented to the user
+            title: Security
+            # desctiption is optional and will appear above changes
+            description: This section contains very important security-related changes.
+            subsections:
+                vuln_fixes:
+                    title: Fixed vulnerabilities
+        features:
+            # some comment
+            title: New features
+        bug_fixes:
+            title: Fixed bugs
+        breaking:
+            title: Breaking changes
+        perf:
+            title: Performance improvements
+        dev:
+            title: Development
+            description: Internal development changes
+    "#;
+
     #[test]
     fn template_valid_yaml() {
         use super::Section;
         use indexmap::IndexMap;
 
-        let f = FileReaderMock::new(
-            r#"
-skip-commits-up-to: bc58e6bf2cf640d46aa832e297d0f215f76dfce0
-
-projects:
-    list:  # list of projects
-    - main: [".", .github, .githooks] # name: [directory1, directory2]
-    - mkchlog: [mkchlog] # name: [directory]
-    - mkchlog-action: [mkchlog-action] # name: [directory]
-
-    since-commit: 276aa9e4b013de1646ea57cfcbf74e5966524f68 # projects are mandatory since COMMIT_NUMBER
-    default: mkchlog # commits up to COMMIT_NUMBER are considered belonging to the project NAME
-
-sections:
-    # section identifier selected by project maintainer
-    security:
-        # The header presented to the user
-        title: Security
-        # desctiption is optional and will appear above changes
-        description: This section contains very important security-related changes.
-        subsections:
-            vuln_fixes:
-                title: Fixed vulnerabilities
-    features:
-        # some comment
-        title: New features
-    bug_fixes:
-        title: Fixed bugs
-    breaking:
-        title: Breaking changes
-    perf:
-        title: Performance improvements
-    dev:
-        title: Development
-        description: Internal development changes
-"#,
-        );
+        let f = FileReaderMock::new(YAML_TEMPLATE);
 
         let res = Template::new(f);
         assert!(res.is_ok());
@@ -481,24 +482,18 @@ sections:
             settings.skip_commits_up_to.as_ref().unwrap(),
             "bc58e6bf2cf640d46aa832e297d0f215f76dfce0"
         );
-        assert_eq!(
-            settings.projects_settings.projects,
-            HashMap::from([
-                (
-                    "main".to_owned(),
-                    vec![
-                        PathBuf::from("."),
-                        PathBuf::from(".github"),
-                        PathBuf::from(".githooks")
-                    ]
-                ),
-                (
-                    "mkchlog-action".to_owned(),
-                    vec![PathBuf::from("mkchlog-action")]
-                ),
-                ("mkchlog".to_owned(), vec![PathBuf::from("mkchlog")])
-            ])
-        );
+
+        assert_eq!(settings.projects_settings.projects.len(), 3);
+        for key in settings.projects_settings.projects.keys() {
+            let proj = settings.projects_settings.projects.get(key).unwrap();
+            assert_eq!(*key, proj.name);
+            if key == "main" {
+                assert_eq!(proj.dirs.len(), 3);
+            } else {
+                assert_eq!(proj.dirs.len(), 1);
+            }
+        }
+
         assert_eq!(
             settings.projects_settings.since_commit.as_ref().unwrap(),
             "276aa9e4b013de1646ea57cfcbf74e5966524f68"
@@ -683,39 +678,7 @@ sections:
 
     #[test]
     fn generate_commit_template_with_projects() {
-        let f = FileReaderMock::new(
-            r#"
-skip-commits-up-to: bc58e6bf2cf640d46aa832e297d0f215f76dfce0
-
-projects:
-    list:
-    - main: [".", .github, .githooks]
-    - mkchlog: [mkchlog]
-    - mkchlog-action: [mkchlog-action]
-
-    since-commit: 276aa9e4b013de1646ea57cfcbf74e5966524f68 # projects are mandatory since COMMIT_NUMBER
-    default: mkchlog # commits up to COMMIT_NUMBER are considered belonging to the project NAME
-
-sections:
-    security:
-        title: Security
-        description: This section contains very important security-related changes.
-        subsections:
-            vuln_fixes:
-                title: Fixed vulnerabilities
-    features:
-        title: New features
-    bug_fixes:
-        title: Fixed bugs
-    breaking:
-        title: Breaking changes
-    perf:
-        title: Performance improvements
-    dev:
-        title: Development
-        description: Internal development changes
-"#,
-        );
+        let f = FileReaderMock::new(YAML_TEMPLATE);
 
         let res = Template::<Changes>::new(f);
         assert!(res.is_ok());
@@ -751,39 +714,7 @@ changelog:
 
     #[test]
     fn generate_commit_template_with_changed_files_from_different_projects() {
-        let f = FileReaderMock::new(
-            r#"
-skip-commits-up-to: bc58e6bf2cf640d46aa832e297d0f215f76dfce0
-
-projects:
-    list:
-    - main: [".", .github, .githooks]
-    - mkchlog: [mkchlog]
-    - mkchlog-action: [mkchlog-action]
-
-    since-commit: 276aa9e4b013de1646ea57cfcbf74e5966524f68 # projects are mandatory since COMMIT_NUMBER
-    default: mkchlog # commits up to COMMIT_NUMBER are considered belonging to the project NAME
-
-sections:
-    security:
-        title: Security
-        description: This section contains very important security-related changes.
-        subsections:
-            vuln_fixes:
-                title: Fixed vulnerabilities
-    features:
-        title: New features
-    bug_fixes:
-        title: Fixed bugs
-    breaking:
-        title: Breaking changes
-    perf:
-        title: Performance improvements
-    dev:
-        title: Development
-        description: Internal development changes
-"#,
-        );
+        let f = FileReaderMock::new(YAML_TEMPLATE);
 
         let res = Template::<Changes>::new(f);
         assert!(res.is_ok());
@@ -820,39 +751,7 @@ changelog:
 
     #[test]
     fn generate_commit_template_fails_when_could_not_determine_project() {
-        let f = FileReaderMock::new(
-            r#"
-skip-commits-up-to: bc58e6bf2cf640d46aa832e297d0f215f76dfce0
-
-projects:
-    list:
-    - main: [".", .github, .githooks]
-    - mkchlog: [mkchlog]
-    - mkchlog-action: [mkchlog-action]
-
-    since-commit: 276aa9e4b013de1646ea57cfcbf74e5966524f68 # projects are mandatory since COMMIT_NUMBER
-    default: mkchlog # commits up to COMMIT_NUMBER are considered belonging to the project NAME
-
-sections:
-    security:
-        title: Security
-        description: This section contains very important security-related changes.
-        subsections:
-            vuln_fixes:
-                title: Fixed vulnerabilities
-    features:
-        title: New features
-    bug_fixes:
-        title: Fixed bugs
-    breaking:
-        title: Breaking changes
-    perf:
-        title: Performance improvements
-    dev:
-        title: Development
-        description: Internal development changes
-"#,
-        );
+        let f = FileReaderMock::new(YAML_TEMPLATE);
 
         let res = Template::<Changes>::new(f);
         assert!(res.is_ok());
