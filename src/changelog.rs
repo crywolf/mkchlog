@@ -246,7 +246,7 @@ impl CommitChangelog {
             self.commit.raw_data
         ))?;
         let (section, sub_section) = section
-            .split_once(':')
+            .split_once('.')
             .map(|(sec, subsec)| (sec.trim(), subsec.trim()))
             .unwrap_or((section, ""));
 
@@ -454,7 +454,7 @@ Date:   Tue Jun 13 16:27:59 2023 +0200
     after opening the file. (before reading)
 
     changelog:
-        section: security:vuln_fixes
+        section: security.vuln_fixes
         title: Fixed vulnerability related to opening files
         description: The application was vulnerable to attacks
                     if the attacker had access to the working
@@ -464,7 +464,7 @@ Date:   Tue Jun 13 16:27:59 2023 +0200
                     unprivileged users you don't need to worry.";
 
         let exp = vec![
-                "section: security:vuln_fixes",
+                "section: security.vuln_fixes",
                 "title: Fixed vulnerability related to opening files",
                 "description: The application was vulnerable to attacks if the attacker had access to the working directory. If you run this in such enviroment you should update ASAP. If your working directory is **not** accessible by unprivileged users you don't need to worry."];
 
@@ -475,7 +475,7 @@ Date:   Tue Jun 13 16:27:59 2023 +0200
         assert_eq!(*res, exp);
 
         let section = commit_changelog.get_key("section").unwrap();
-        assert_eq!(section, "security:vuln_fixes");
+        assert_eq!(section, "security.vuln_fixes");
 
         let title = commit_changelog.get_key("title").unwrap();
         assert_eq!(title, "Fixed vulnerability related to opening files");
@@ -500,7 +500,7 @@ Date:   Tue Jun 13 16:27:59 2023 +0200
     Fixed TOCTOU race condition when opening file
 
     changelog:
-        section: security:vuln_fixes
+        section: security.vuln_fixes
         title: Fixed vulnerability related
         to opening files
         description: The application was vulnerable to attacks
@@ -511,7 +511,7 @@ Date:   Tue Jun 13 16:27:59 2023 +0200
                 unprivileged users you don't need to worry.";
 
         let exp = vec![
-                "section: security:vuln_fixes",
+                "section: security.vuln_fixes",
                 "title: Fixed vulnerability related to opening files",
                 "description: The application was vulnerable to attacks if the attacker had access to the working directory. If you run this in such enviroment you should update ASAP. If your working directory is **not** accessible by unprivileged users you don't need to worry."];
 

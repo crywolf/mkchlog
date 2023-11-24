@@ -101,7 +101,7 @@ Date:   Tue Jun 13 16:27:59 2023 +0200
     after opening the file. (before reading)
 
     changelog:
-        section: security:vuln_fixes
+        section: security.vuln_fixes
         title: Fixed vulnerability related to opening files
         description: The application was vulnerable to attacks
                      if the attacker had access to the working
@@ -211,7 +211,7 @@ Date:   Tue Jun 13 16:27:59 2023 +0200
     after opening the file. (before reading)
 
     changelog:
-        section: security:vuln_fixes
+        section: security.vuln_fixes
         title: Fixed vulnerability related to opening files
         description: The application was vulnerable to attacks
                      if the attacker had access to the working
@@ -483,7 +483,7 @@ Date:   Tue Jun 13 16:27:59 2023 +0200
     after opening the file. (before reading)
 
     changelog:
-        section: security:vuln_fixes
+        section: security.vuln_fixes
         title: Fixed vulnerability related to opening files
         description: The application was vulnerable to attacks
                      if the attacker had access to the working

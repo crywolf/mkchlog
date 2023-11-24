@@ -103,7 +103,7 @@ the file now we check the metadata using file descriptor
 after opening the file. (before reading)
 
 changelog:
-    section: security:vuln_fixes
+    section: security.vuln_fixes
     title: Fix vulnerability related to opening files
     description: The application was vulnerable to attacks
                  if the attacker had access to the working

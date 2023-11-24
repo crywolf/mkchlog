@@ -239,7 +239,7 @@ impl<T: Default> Template<T> {
                     let indentation =
                         longest_section_name_len - keyword_len - sub_keyword_len - 1 + spaces;
 
-                    out.push(':');
+                    out.push('.');
                     out.push_str(keyword);
                     for _i in 0..indentation {
                         out.push(' ');
@@ -701,7 +701,7 @@ changelog:
 #
 # Valid changelog sections:
 #
-# * security:vuln_fixes  Fixed vulnerabilities
+# * security.vuln_fixes  Fixed vulnerabilities
 # * features             New features
 # * bug_fixes            Fixed bugs
 # * breaking             Breaking changes
@@ -739,7 +739,7 @@ changelog:
 #
 # Valid changelog sections:
 #
-# * security:vuln_fixes  Fixed vulnerabilities
+# * security.vuln_fixes  Fixed vulnerabilities
 # * features             New features
 # * bug_fixes            Fixed bugs
 # * breaking             Breaking changes
@@ -817,7 +817,7 @@ changelog:
 #
 # Valid changelog sections:
 #
-# * security:vuln_fixes  Fixed vulnerabilities
+# * security.vuln_fixes  Fixed vulnerabilities
 # * features             New features
 # * bug_fixes            Fixed bugs
 # * breaking             Breaking changes
