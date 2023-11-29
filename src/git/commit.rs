@@ -39,7 +39,7 @@ impl Commit {
                 raw_data
             ))?;
 
-        let changelog = commit_iter.next().map(str::trim).ok_or(format!(
+        let changelog_message = commit_iter.next().ok_or(format!(
             "Missing 'changelog:' key in commit:\n>>> {}",
             raw_data
         ))?;
@@ -61,7 +61,7 @@ impl Commit {
             commit_id: commit_id.to_owned(),
             header: header.to_owned(),
             message: commit_message.trim().to_owned(),
-            changelog_message: changelog.to_owned(),
+            changelog_message: changelog_message.to_owned(),
             raw_data: raw_data.to_owned(),
         };
 
@@ -98,7 +98,8 @@ Date:   Tue Jun 13 16:26:35 2023 +0200";
     This computes the size and allocates the buffer upfront.
     Avoiding allocations like this introduces 10% speedup.";
 
-        let exp_changelog_message = "section: perf
+        let exp_changelog_message = "
+        section: perf
         title: Improved processing speed by 10%
         title-is-enough: true";
 
@@ -119,7 +120,8 @@ Date:   Tue Jun 13 16:26:35 2023 +0200";
 
         let exp_message = "Don't reallocate the buffer when we know its size";
 
-        let exp_changelog_message = "section: perf
+        let exp_changelog_message = "
+        section: perf
         title: Improved processing speed by 10%
         title-is-enough: true";
 

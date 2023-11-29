@@ -364,12 +364,37 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     );
 
     let res = generate_changelog(mocked_log);
+    assert!(res.is_err());
+    assert!(res.unwrap_err().to_string().starts_with(
+        "changelog: missing field `section` at line 2 column 16 in changelog message in commit:"
+    ));
+}
 
+#[test]
+fn fails_when_empty_section_key_in_commit() {
+    let mocked_log = String::from(
+        "\
+commit 62db026b0ead7f0659df10c70e402c70ede5d7dd
+Author: Cry Wolf <cry.wolf@centrum.cz>
+Date:   Tue Jun 13 16:24:22 2023 +0200
+
+    Added ability to skip commits.
+
+    This allows commits to be skipped by typing 'changelog: skip'
+    at the end of the commit. This is mainly useful for typo
+    fixes or other things irrelevant to the user of a project.
+
+    changelog:
+        section:
+        inherit: all",
+    );
+
+    let res = generate_changelog(mocked_log);
     assert!(res.is_err());
     assert!(res
         .unwrap_err()
         .to_string()
-        .starts_with("Missing 'section' key in changelog message:"));
+        .starts_with("Unknown section '~' in changelog message in commit:"));
 }
 
 #[test]
@@ -432,10 +457,10 @@ Date:   Tue Oct 24 19:17:09 2023 +0200
         section: dev
         inherit: title
         description: This configures github actions to test `mkchlog` as well as run it on
-        its own repository.
+            its own repository.
 
-        The new `.mkchlog.yml` is heavily inspired by the original example with
-        more sections, so we're more flexible in the future.
+            The new `.mkchlog.yml` is heavily inspired by the original example with
+            more sections, so we're more flexible in the future.
 
 commit 62db026b0ead7f0659df10c70e402c70ede5d7dd
 Author: Cry Wolf <cry.wolf@centrum.cz>
@@ -461,7 +486,8 @@ Internal development changes
 
 ### Setup Github Actions
 
-This configures github actions to test `mkchlog` as well as run it on its own repository.  The new `.mkchlog.yml` is heavily inspired by the original example with more sections, so we're more flexible in the future.
+This configures github actions to test `mkchlog` as well as run it on its own repository.
+The new `.mkchlog.yml` is heavily inspired by the original example with more sections, so we're more flexible in the future.
 
 ============================================";
 
@@ -534,7 +560,6 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     let mut changelog = Changelog::new(&mut template, git);
 
     let res = changelog.generate(PROJECT_NONE, Command::Check);
-
     assert!(res.is_err());
     assert!(res
         .unwrap_err()

@@ -84,7 +84,7 @@ Date:   Tue Oct 31 13:46:59 2023 +0100
     It is possible to check the commit before it is actually committed. Useful to use in a commit-msg git hook.
 
     changelog:
-        project:main
+        project: main
         section: features
         inherit: all
 
@@ -282,6 +282,115 @@ This updates the wasm module to one which was compiled with `--release`.
 ## Documentation changes
 
 * Add configuration instructions to README.md
+
+============================================";
+
+    assert_eq!(exp_output, output);
+}
+
+#[test]
+fn commits_with_more_projects_should_work() {
+    let mocked_log = String::from(
+        "\
+commit b532ebcb0a214fbc69a5f5138e43eec14ea1a9dc
+Author: Cry Wolf <cry.wolf@centrum.cz>
+Date:   Tue Oct 24 19:17:09 2023 +0200
+
+    Setup CI
+
+    Setup CI + update dependency in mkchlog-action
+
+    changelog:
+     - project:
+        name: mkchlog
+        section: dev
+        inherit: all
+        title-is-enough: true
+     - project:
+        name: mkchlog-action
+        section: features
+        inherit: all
+",
+    );
+
+    let project = Some("mkchlog".to_owned());
+    let output = generate_changelog(mocked_log.clone(), YAML_FILE_PROJECTS, project).unwrap();
+
+    let exp_output = "\
+============================================
+
+## Development
+
+Internal development changes
+
+* Setup CI
+
+============================================";
+
+    assert_eq!(exp_output, output);
+
+    let project = Some("mkchlog-action".to_owned());
+    let output = generate_changelog(mocked_log, YAML_FILE_PROJECTS, project).unwrap();
+
+    let exp_output = "\
+============================================
+
+## New features
+
+### Setup CI
+
+Setup CI + update dependency in mkchlog-action
+
+============================================";
+
+    assert_eq!(exp_output, output);
+}
+
+#[test]
+fn commits_with_more_projects_should_work_one_project_skip() {
+    let mocked_log = String::from(
+        "\
+commit b532ebcb0a214fbc69a5f5138e43eec14ea1a9dc
+Author: Cry Wolf <cry.wolf@centrum.cz>
+Date:   Tue Oct 24 19:17:09 2023 +0200
+
+    Setup CI
+
+    Setup CI + update dependency in mkchlog-action
+
+    changelog:
+     - project:
+        name: mkchlog
+        section: dev
+        inherit: title
+        title-is-enough: true
+     - project:
+        name: mkchlog-action
+        skip: true
+",
+    );
+
+    let project = Some("mkchlog".to_owned());
+    let output = generate_changelog(mocked_log.clone(), YAML_FILE_PROJECTS, project).unwrap();
+
+    let exp_output = "\
+============================================
+
+## Development
+
+Internal development changes
+
+* Setup CI
+
+============================================";
+
+    assert_eq!(exp_output, output);
+
+    let project = Some("mkchlog-action".to_owned());
+    let output = generate_changelog(mocked_log, YAML_FILE_PROJECTS, project).unwrap();
+
+    let exp_output = "\
+============================================
 
 ============================================";
 

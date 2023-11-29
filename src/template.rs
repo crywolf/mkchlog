@@ -197,13 +197,26 @@ impl<T: Default> Template<T> {
         out.push_str("\n\n");
         out.push_str("changelog:\n");
         if !projects.is_empty() {
-            // TODO: API not yet stabilized
-            out.push_str("  project: ");
-            out.push_str(&projects.join(" | "));
-            out.push('\n');
+            if projects.len() == 1 {
+                out.push_str("  project: ");
+                out.push_str(projects[0]);
+                out.push('\n');
+                out.push_str("  section:\n");
+                out.push_str("  inherit: all\n");
+            } else {
+                for project in projects {
+                    out.push_str(" - project:\n");
+                    out.push_str("    name: ");
+                    out.push_str(project);
+                    out.push('\n');
+                    out.push_str("    section:\n");
+                    out.push_str("    inherit: all\n");
+                }
+            }
+        } else {
+            out.push_str("  section:\n");
+            out.push_str("  inherit: all\n");
         }
-        out.push_str("  section:\n");
-        out.push_str("  inherit: all\n");
 
         out.push_str("#\n");
         out.push_str("# Valid changelog sections:\n#");
@@ -729,13 +742,17 @@ commit.txt",
 
         let output = template.generate_commit_template(stdio).unwrap();
 
-        // TODO: correct the test when output is stabilized
         let exp_output = r"
 
 changelog:
-  project: main | mkchlog-action
-  section:
-  inherit: all
+ - project:
+    name: main
+    section:
+    inherit: all
+ - project:
+    name: mkchlog-action
+    section:
+    inherit: all
 #
 # Valid changelog sections:
 #
