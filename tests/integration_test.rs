@@ -28,6 +28,18 @@ fn generate_changelog(mocked_log: String) -> Result<String, Box<dyn std::error::
 fn it_produces_correct_output() {
     let mocked_log = String::from(
         "\
+commit 68b0e70191bf2525f7ee96f54e2dbccc940dcbfd (HEAD -> projects2)
+Author: Cry Wolf <cry.wolf@centrum.cz>
+Date:   Tue Dec 5 20:25:07 2023 +0100
+
+    Add optional list of commit IDs to skip
+
+    You can provide list of commit numbers to skip in the config template. Useful in case you want to simply revoke some obsolete or wrong commit message.
+
+    changelog:
+        section: features
+        title: List of commit IDs to skip
+
 commit 12b6a464d165c18cc29394e332d6f6c6d09170e2
 Author: Cry Wolf <cry.wolf@centrum.cz>
 Date:   Fri Oct 27 20:22:58 2023 +0200
@@ -184,6 +196,10 @@ If your working directory is **not** accessible by unprivileged users you don't 
 ## New features
 
 * Support building on Debian Bookworm
+
+### List of commit IDs to skip
+
+You can provide list of commit numbers to skip in the config template. Useful in case you want to simply revoke some obsolete or wrong commit message.
 
 ### Allow configuring commit ID in yaml
 
