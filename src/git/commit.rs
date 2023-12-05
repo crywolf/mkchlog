@@ -87,7 +87,7 @@ Date:   Tue Jun 13 16:26:35 2023 +0200
     changelog:
         section: perf
         title: Improved processing speed by 10%
-        title-is-enough: true";
+        only-title: true";
 
         let exp_header = "commit 7c85bee4303d56bededdfacf8fbb7bdc68e2195b
 Author: Cry Wolf <cry.wolf@centrum.cz>
@@ -101,7 +101,7 @@ Date:   Tue Jun 13 16:26:35 2023 +0200";
         let exp_changelog_message = "
         section: perf
         title: Improved processing speed by 10%
-        title-is-enough: true";
+        only-title: true";
 
         let res = Commit::new(raw_data).unwrap();
         assert_eq!(res.header, exp_header);
@@ -112,7 +112,7 @@ Date:   Tue Jun 13 16:26:35 2023 +0200";
     #[test]
     fn commit_new_with_windows_extra_carrige_return() {
         // commit with \r\n as a line separator
-        let raw_data = "commit 7c85bee4303d56bededdfacf8fbb7bdc68e2195b\r\nAuthor: Cry Wolf <cry.wolf@centrum.cz>\r\nDate:   Tue Jun 13 16:26:35 2023 +0200\r\n\r\n    Don't reallocate the buffer when we know its size\r\n    changelog:\r\n        section: perf\r\n        title: Improved processing speed by 10%\r\n        title-is-enough: true";
+        let raw_data = "commit 7c85bee4303d56bededdfacf8fbb7bdc68e2195b\r\nAuthor: Cry Wolf <cry.wolf@centrum.cz>\r\nDate:   Tue Jun 13 16:26:35 2023 +0200\r\n\r\n    Don't reallocate the buffer when we know its size\r\n    changelog:\r\n        section: perf\r\n        title: Improved processing speed by 10%\r\n        only-title: true";
 
         let exp_header = "commit 7c85bee4303d56bededdfacf8fbb7bdc68e2195b
 Author: Cry Wolf <cry.wolf@centrum.cz>
@@ -123,7 +123,7 @@ Date:   Tue Jun 13 16:26:35 2023 +0200";
         let exp_changelog_message = "
         section: perf
         title: Improved processing speed by 10%
-        title-is-enough: true";
+        only-title: true";
 
         let res = Commit::new(raw_data).unwrap();
         assert_eq!(res.header, exp_header);

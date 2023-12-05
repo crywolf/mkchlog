@@ -29,10 +29,11 @@ pub struct Changelog {
     pub project: Option<String>,
     pub section: String,
     pub title: Option<String>,
-    #[serde(rename = "title-is-enough", default)]
-    pub title_is_enough: bool,
+    #[serde(rename = "only-title", alias = "title-is-enough", default)]
+    // "title-is-enough" is deprecated; only for backwards compatibility
+    pub only_title: bool,
     pub description: Option<String>,
-    pub inherit: Option<String>, // ignored, only for backwards compatibility
+    pub inherit: Option<String>, // deprecated and ignored; only for backwards compatibility
     #[serde(skip)]
     pub projects: Option<Vec<Project>>,
 }
@@ -51,8 +52,8 @@ pub struct Project {
     pub name: String,
     pub section: Option<String>,
     pub title: Option<String>,
-    #[serde(rename = "title-is-enough", default)]
-    pub title_is_enough: bool,
+    #[serde(rename = "only-title", default)]
+    pub only_title: bool,
     pub description: Option<String>,
 }
 
@@ -63,7 +64,7 @@ impl From<Project> for Changelog {
             project: Some(project.name),
             section: project.section.unwrap_or_default(),
             title: project.title,
-            title_is_enough: project.title_is_enough,
+            only_title: project.only_title,
             description: project.description,
             inherit: None,
             projects: None,
@@ -168,7 +169,7 @@ mod tests {
             project: None,
             section: "".to_owned(),
             title: None,
-            title_is_enough: false,
+            only_title: false,
             description: None,
             inherit: None,
             projects: None,
@@ -183,14 +184,52 @@ mod tests {
         let yaml = "
         project: mkchlog-action
         section: doc
-        title-is-enough: true";
+        only-title: true";
 
         let expected = Changelog {
             skip: false,
             project: Some("mkchlog-action".to_owned()),
             section: "doc".to_owned(),
             title: None,
-            title_is_enough: true,
+            only_title: true,
+            description: None,
+            inherit: None,
+            projects: None,
+        };
+
+        let res = parse(yaml).unwrap();
+        assert_eq!(res, expected);
+
+        let yaml = "
+        project: mkchlog-action
+        section: doc
+        title-is-enough: true"; // deprecated alias for "only-title"
+
+        let expected = Changelog {
+            skip: false,
+            project: Some("mkchlog-action".to_owned()),
+            section: "doc".to_owned(),
+            title: None,
+            only_title: true,
+            description: None,
+            inherit: None,
+            projects: None,
+        };
+
+        let res = parse(yaml).unwrap();
+        assert_eq!(res, expected);
+
+        let yaml = "
+        project: mkchlog-action
+        section: doc
+        title-is-enough: false";
+
+        let expected = Changelog {
+            skip: false,
+            project: Some("mkchlog-action".to_owned()),
+            section: "doc".to_owned(),
+            title: None,
+            only_title: false,
             description: None,
             inherit: None,
             projects: None,
@@ -208,7 +247,7 @@ mod tests {
             project: Some("mkchlog".to_owned()),
             section: "features".to_owned(),
             title: None,
-            title_is_enough: false,
+            only_title: false,
             description: None,
             inherit: None,
             projects: None,
@@ -226,7 +265,7 @@ mod tests {
             project: None,
             section: "features".to_owned(),
             title: None,
-            title_is_enough: false,
+            only_title: false,
             description: None,
             inherit: None,
             projects: None,
@@ -243,7 +282,7 @@ mod tests {
             project: None,
             section: "features".to_owned(),
             title: None,
-            title_is_enough: false,
+            only_title: false,
             description: None,
             inherit: None,
             projects: None,
@@ -288,7 +327,7 @@ mod tests {
         - project:
            name: mkchlog
            section: dev
-           title-is-enough: true
+           only-title: true
         - project:
            name: mkchlog-action
            skip: true";
@@ -298,7 +337,7 @@ mod tests {
             project: None,
             section: "".to_owned(),
             title: None,
-            title_is_enough: false,
+            only_title: false,
             description: None,
             inherit: None,
             projects: Some(vec![
@@ -307,7 +346,7 @@ mod tests {
                     name: "mkchlog".to_owned(),
                     section: Some("dev".to_owned()),
                     title: None,
-                    title_is_enough: true,
+                    only_title: true,
                     description: None,
                 },
                 Project {
@@ -315,7 +354,7 @@ mod tests {
                     name: "mkchlog-action".to_owned(),
                     section: None,
                     title: None,
-                    title_is_enough: false,
+                    only_title: false,
                     description: None,
                 },
             ]),

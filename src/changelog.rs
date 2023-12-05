@@ -254,7 +254,7 @@ impl CommitChangelog {
 
             let mut title = changelog.title.as_deref().unwrap_or("");
             let mut description = changelog.description.as_deref().unwrap_or("");
-            let title_is_enough = changelog.title_is_enough;
+            let only_title = changelog.only_title;
 
             let section = changelog.section.as_str();
             let (section, sub_section) = section
@@ -300,7 +300,7 @@ impl CommitChangelog {
             let mut change = String::new();
 
             if !title.is_empty() {
-                if title_is_enough || description.is_empty() {
+                if only_title || description.is_empty() {
                     change_type = ChangeType::TitleOnly;
                     title_prefix = "* ";
                 } else if !sub_section.is_empty() {
@@ -313,7 +313,7 @@ impl CommitChangelog {
                 change.push_str("\n\n");
             }
 
-            if !description.is_empty() && !title_is_enough {
+            if !description.is_empty() && !only_title {
                 change.push_str(description);
                 change.push_str("\n\n");
             }

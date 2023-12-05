@@ -36,7 +36,7 @@ Date:   Tue Oct 24 19:17:09 2023 +0200
 
     changelog:
         section: dev
-        title-is-enough: true
+        only-title: true
 
 commit cdbfeb9b2576e07f12da569c54f5ec3cd7b9c0fc
 Author: Cry Wolf <cry.wolf@centrum.cz>
@@ -67,7 +67,7 @@ Date:   Sun Oct 22 09:12:50 2023 +0200
 
     changelog:
         section: features
-        title-is-enough: true
+        only-title: true
 
 commit 624c947820cba6c0665b84bfc139f209277f2a95
 Author: Martin Habovstiak <martin.habovstiak@gmail.com>
@@ -86,7 +86,7 @@ Date:   Sat Oct 21 19:00:27 2023 +0200
 
     changelog:
             section: dev
-            title-is-enough: true
+            only-title: true
 
 commit 1cc72956df91e2fd8c45e72983c4e1149f1ac3b3
 Author: Cry Wolf <cry.wolf@centrum.cz>
@@ -120,7 +120,7 @@ Date:   Tue Jun 13 16:26:35 2023 +0200
     changelog:
         section: perf
         title: Improved processing speed by 10%
-        title-is-enough: true
+        only-title: true
 
 commit a1a654e256cc96e1c4b5a81845b5e3f3f0aa9ed3
 Author: Cry Wolf <cry.wolf@centrum.cz>
@@ -273,7 +273,7 @@ Date:   Sun Oct 22 09:12:50 2023 +0200
 
     changelog:
             section: features
-            title-is-enough: true
+            only-title: true
 
 commit 62db026b0ead7f0659df10c70e402c70ede5d7dd
 Author: Cry Wolf <cry.wolf@centrum.cz>
@@ -354,13 +354,13 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     fixes or other things irrelevant to the user of a project.
 
     changelog:
-        title-is-enough: true",
+        only-title: true",
     );
 
     let res = generate_changelog(mocked_log);
     assert!(res.is_err());
     assert!(res.unwrap_err().to_string().starts_with(
-        "changelog: missing field `section` at line 2 column 24 in changelog message in commit:"
+        "changelog: missing field `section` at line 2 column 19 in changelog message in commit:"
     ));
 }
 
@@ -402,7 +402,7 @@ Date:   Tue Oct 24 19:17:09 2023 +0200
 
     changelog:
         section: dev
-        title-is-enough: true
+        only-title: true
 
 commit 62db026b0ead7f0659df10c70e402c70ede5d7dd
 Author: Cry Wolf <cry.wolf@centrum.cz>

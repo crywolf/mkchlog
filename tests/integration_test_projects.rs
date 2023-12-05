@@ -45,7 +45,7 @@ Date:   Sun Oct 25 10:12:50 2023 +0200
     changelog:
         project: mkchlog-action
         section: doc
-        title-is-enough: true
+        only-title: true
 
 commit b532ebcb0a214fbc69a5f5138e43eec14ea1a9dc
 Author: Cry Wolf <cry.wolf@centrum.cz>
@@ -56,7 +56,7 @@ Date:   Tue Oct 24 19:17:09 2023 +0200
     changelog:
         project: mkchlog
         section: dev
-        title-is-enough: true
+        only-title: true
 
 commit cdbfeb9b2576e07f12da569c54f5ec3cd7b9c0fc
 Author: Cry Wolf <cry.wolf@centrum.cz>
@@ -113,7 +113,7 @@ Date:   Sun Oct 22 09:12:50 2023 +0200
     changelog:
         project: mkchlog
         section: features
-        title-is-enough: true
+        only-title: true
 
 commit 624c947820cba6c0665b84bfc139f209277f2a95
 Author: Martin Habovstiak <martin.habovstiak@gmail.com>
@@ -133,7 +133,7 @@ Date:   Sat Oct 21 19:00:27 2023 +0200
     changelog:
             project: mkchlog
             section: dev
-            title-is-enough: true",
+            only-title: true",
     );
 
     let project = Some("mkchlog".to_owned());
@@ -179,7 +179,7 @@ Date:   Sun Oct 25 10:12:50 2023 +0200
     changelog:
         project: mkchlog-action
         section: doc
-        title-is-enough: true
+        only-title: true
 
 commit b532ebcb0a214fbc69a5f5138e43eec14ea1a9dc
 Author: Cry Wolf <cry.wolf@centrum.cz>
@@ -190,7 +190,7 @@ Date:   Tue Oct 24 19:17:09 2023 +0200
     changelog:
         project: mkchlog
         section: dev
-        title-is-enough: true
+        only-title: true
 
 commit cdbfeb9b2576e07f12da569c54f5ec3cd7b9c0fc
 Author: Cry Wolf <cry.wolf@centrum.cz>
@@ -235,7 +235,7 @@ Date:   Sun Oct 22 09:12:50 2023 +0200
     changelog:
         project: mkchlog
         section: features
-        title-is-enough: true
+        only-title: true
 
 commit 624c947820cba6c0665b84bfc139f209277f2a95
 Author: Martin Habovstiak <martin.habovstiak@gmail.com>
@@ -255,7 +255,7 @@ Date:   Sat Oct 21 19:00:27 2023 +0200
     changelog:
             project: mkchlog
             section: dev
-            title-is-enough: true",
+            only-title: true",
     );
 
     let project = Some("mkchlog-action".to_owned());
@@ -295,7 +295,7 @@ Date:   Tue Oct 24 19:17:09 2023 +0200
      - project:
         name: mkchlog
         section: dev
-        title-is-enough: true
+        only-title: true
      - project:
         name: mkchlog-action
         section: features",
@@ -350,7 +350,7 @@ Date:   Tue Oct 24 19:17:09 2023 +0200
      - project:
         name: mkchlog
         section: dev
-        title-is-enough: true
+        only-title: true
      - project:
         name: mkchlog-action
         skip: true
@@ -414,7 +414,7 @@ Date:   Sun Oct 25 10:12:50 2023 +0200
     changelog:
         project: wrong-name
         section: doc
-        title-is-enough: true",
+        only-title: true",
     );
 
     let project = Some("mkchlog".to_owned());
@@ -442,7 +442,7 @@ Date:   Sun Oct 25 10:12:50 2023 +0200
     changelog:
         project: mkchlog-action
         section: doc
-        title-is-enough: true
+        only-title: true
 
 commit b532ebcb0a214fbc69a5f5138e43eec14ea1a9dc
 Author: Cry Wolf <cry.wolf@centrum.cz>
@@ -453,7 +453,7 @@ Date:   Tue Oct 24 19:17:09 2023 +0200
     changelog:
         project: mkchlog
         section: dev
-        title-is-enough: true
+        only-title: true
 
 commit cdbfeb9b2576e07f12da569c54f5ec3cd7b9c0fc
 Author: Cry Wolf <cry.wolf@centrum.cz>
@@ -497,7 +497,7 @@ Date:   Sun Oct 22 09:12:50 2023 +0200
 
     changelog:
         section: features
-        title-is-enough: true
+        only-title: true
 
 commit 624c947820cba6c0665b84bfc139f209277f2a95
 Author: Martin Habovstiak <martin.habovstiak@gmail.com>
@@ -516,7 +516,7 @@ Date:   Sat Oct 21 19:00:27 2023 +0200
 
     changelog:
             section: dev
-            title-is-enough: true",
+            only-title: true",
     );
 
     let project = Some("mkchlog".to_owned());
@@ -562,7 +562,7 @@ Date:   Sun Oct 25 10:12:50 2023 +0200
     changelog:
         project: mkchlog-action
         section: doc
-        title-is-enough: true
+        only-title: true
 
 commit b532ebcb0a214fbc69a5f5138e43eec14ea1a9dc
 Author: Cry Wolf <cry.wolf@centrum.cz>
@@ -573,7 +573,7 @@ Date:   Tue Oct 24 19:17:09 2023 +0200
     changelog:
         project: mkchlog
         section: dev
-        title-is-enough: true
+        only-title: true
 
 commit cdbfeb9b2576e07f12da569c54f5ec3cd7b9c0fc
 Author: Cry Wolf <cry.wolf@centrum.cz>
@@ -617,7 +617,7 @@ Date:   Sun Oct 22 09:12:50 2023 +0200
 
     changelog:
         section: features
-        title-is-enough: true
+        only-title: true
 
 commit 624c947820cba6c0665b84bfc139f209277f2a95
 Author: Martin Habovstiak <martin.habovstiak@gmail.com>
@@ -636,7 +636,7 @@ Date:   Sat Oct 21 19:00:27 2023 +0200
 
     changelog:
             section: dev
-            title-is-enough: true",
+            only-title: true",
     );
 
     let project = Some("mkchlog-action".to_owned());

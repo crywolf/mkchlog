@@ -91,7 +91,7 @@ Avoiding allocations like this introduces 10% speedup.
 changelog:
     section: perf
     title: Improve processing speed by 10%
-    title-is-enough: true
+    only-title: true
 ```
 
 ```
@@ -123,7 +123,7 @@ more sections, so we're more flexible in the future.
 
 changelog:
 	section: dev
-	title-is-enough: true
+	only-title: true
 ```
 
 ```
@@ -246,7 +246,7 @@ This should be used when the commit message and description is equally useful fo
 `title` and `description` fields are those intended for the user and can override the default values extracted from the commit message.
 The fictious "TOCTOU vulnerability fix" commit message above is hopefully a clear example.
 For users it describes how it impacts them while for programmers it explains technical details of the issue.
-`title-is-enough: true` explicitly opts-out of description, intended for situation when additional information is not needed for the user.
+`only-title: true` explicitly opts-out of description, intended for situation when additional information is not needed for the user.
 
 People refer to sections by their identifiers, not titles so that they don't accidentally duplicate the section just because of typo.
 Unknown sections in commit messages are rejected.
