@@ -36,12 +36,6 @@ Run `mkchlog help` for complete command options.
 
 ```yaml
 # .mkchlog.yml
-# OPTIONAL Commit number to start (same as -c 7c85bee4303d56bededdfacf8fbb7bdc68e2195b)
-skip-commits-up-to: 7c85bee4303d56bededdfacf8fbb7bdc68e2195b
-
-# OPTIONAL Path to the git repository (same as -g ../git-mkchlog-test/)
-git-path: ../git-mkchlog-test/
-
 sections:
     # section identifier selected by project maintainer
     security:
@@ -59,6 +53,17 @@ sections:
     dev:
         title: Development
         description: Internal development changes
+
+# OPTIONAL Commit number to start (same as -c 7c85bee4303d56bededdfacf8fbb7bdc68e2195b)
+skip-commits-up-to: 7c85bee4303d56bededdfacf8fbb7bdc68e2195b
+
+# OPTIONAL List of commit numbers to skip (in case you want to simply "revoke" some obsolete or wrong commit message from the changelog output)
+skip-commits-list:
+    - 12b6a464d165c18cc29394e332d6f6c6d09170e2
+    - a27c77b683c6334e79e94c232ed699f5a5216fee
+
+# OPTIONAL Path to the git repository (same as -g ../git-mkchlog-test/)
+git-path: ../git-mkchlog-test/
 ```
 
 #### Commits

@@ -45,6 +45,7 @@ where
             .since_commit
             .clone()
             .unwrap_or_default();
+        let skip_commits_list = settings.skip_commits_list.clone();
 
         let use_default_project = default_project_from_config.is_some();
         let mut default_project = &None;
@@ -72,6 +73,10 @@ where
 
         // iterate through commits and fill in the changelog_template
         for commit in commits {
+            if skip_commits_list.contains(&commit.commit_id) {
+                continue;
+            }
+
             // all commit until `since-commit` should belong to `default_project`
             if use_default_project {
                 if set_default_project {

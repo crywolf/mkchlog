@@ -18,6 +18,7 @@ pub struct Template<T: Default> {
 #[derive(Debug)]
 pub struct Settings {
     pub skip_commits_up_to: Option<String>,
+    pub skip_commits_list: Vec<String>,
     pub git_path: Option<PathBuf>,
     pub projects_settings: ProjectsSettings,
 }
@@ -287,6 +288,23 @@ impl<T: Default> std::str::FromStr for Template<T> {
             })
             .transpose()?;
 
+        let skip_commits_list = config
+            .get("skip-commits-list")
+            .map(|v| {
+                v.as_sequence().map(ToOwned::to_owned).ok_or(
+                    "'skip-commits-list' key in config file must be an array (list of commit IDs)",
+                )
+            })
+            .transpose()?
+            .map_or(vec![], |v| v)
+            .into_iter()
+            .map(|v| {
+                v.as_str()
+                    .map(ToOwned::to_owned)
+                    .ok_or("item in 'skip-commits-list' key in config file must be a string")
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+
         let git_path = config
             .get("git-path")
             .map(|v| {
@@ -373,6 +391,7 @@ impl<T: Default> std::str::FromStr for Template<T> {
             changelog_template: ChangelogTemplate::new(),
             settings: Settings {
                 skip_commits_up_to,
+                skip_commits_list,
                 git_path,
                 projects_settings: ProjectsSettings {
                     projects,
@@ -435,6 +454,9 @@ mod tests {
     const YAML_TEMPLATE: &str = r#"
     skip-commits-up-to: bc58e6bf2cf640d46aa832e297d0f215f76dfce0
 
+    skip-commits-list:
+        - e0bc0c225a587461ed2f5d986ac2d023c994289a
+
     projects:
       list:
         - project:
@@ -491,6 +513,12 @@ mod tests {
         assert_eq!(
             settings.skip_commits_up_to.as_ref().unwrap(),
             "bc58e6bf2cf640d46aa832e297d0f215f76dfce0"
+        );
+
+        assert_eq!(settings.skip_commits_list.len(), 1);
+        assert_eq!(
+            settings.skip_commits_list[0],
+            "e0bc0c225a587461ed2f5d986ac2d023c994289a"
         );
 
         assert_eq!(settings.projects_settings.projects.len(), 3);

@@ -28,6 +28,15 @@ fn generate_changelog(mocked_log: String) -> Result<String, Box<dyn std::error::
 fn it_produces_correct_output() {
     let mocked_log = String::from(
         "\
+commit 12b6a464d165c18cc29394e332d6f6c6d09170e2
+Author: Cry Wolf <cry.wolf@centrum.cz>
+Date:   Fri Oct 27 20:22:58 2023 +0200
+
+    Fix forgotten import in Wasm
+
+    changelog:
+        section: features
+
 commit b532ebcb0a214fbc69a5f5138e43eec14ea1a9dc
 Author: Cry Wolf <cry.wolf@centrum.cz>
 Date:   Tue Oct 24 19:17:09 2023 +0200
@@ -87,6 +96,15 @@ Date:   Sat Oct 21 19:00:27 2023 +0200
     changelog:
             section: dev
             only-title: true
+
+commit a27c77b683c6334e79e94c232ed699f5a5216fee
+Author: Cry Wolf <cry.wolf@centrum.cz>
+Date:   Fri Sep 8 18:20:52 2023 +0100
+
+    'project' arg can be empty when reading from stdin even in multi-prject repo (used in Github hook)
+
+    changelog:
+        section: features
 
 commit 1cc72956df91e2fd8c45e72983c4e1149f1ac3b3
 Author: Cry Wolf <cry.wolf@centrum.cz>

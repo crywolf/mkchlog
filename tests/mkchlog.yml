@@ -1,5 +1,9 @@
 skip-commits-up-to: bc58e6bf2cf640d46aa832e297d0f215f76dfce0
 
+skip-commits-list:
+    - 12b6a464d165c18cc29394e332d6f6c6d09170e2
+    - a27c77b683c6334e79e94c232ed699f5a5216fee
+
 sections:
     # section identifier selected by project maintainer
     security:
