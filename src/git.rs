@@ -32,6 +32,10 @@ impl Git {
         // however for some unknown reason it would cause `npm` to silently exit with success code when ran in WASM.
         // This workarounds the issue.
         let mut commits = Vec::new();
+        if git_log.is_empty() {
+            return Ok(commits);
+        }
+
         let mut pos = 0;
         loop {
             let end = git_log[(pos + 1)..].find("\ncommit ");
@@ -82,7 +86,6 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     fixes or other things irrelevant to the user of a project.
 
     changelog:
-        inherit: all
         section: features";
 
             Ok(ouput.to_string())

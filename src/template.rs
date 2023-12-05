@@ -202,7 +202,6 @@ impl<T: Default> Template<T> {
                 out.push_str(projects[0]);
                 out.push('\n');
                 out.push_str("  section:\n");
-                out.push_str("  inherit: all\n");
             } else {
                 for project in projects {
                     out.push_str(" - project:\n");
@@ -210,12 +209,10 @@ impl<T: Default> Template<T> {
                     out.push_str(project);
                     out.push('\n');
                     out.push_str("    section:\n");
-                    out.push_str("    inherit: all\n");
                 }
             }
         } else {
             out.push_str("  section:\n");
-            out.push_str("  inherit: all\n");
         }
 
         out.push_str("#\n");
@@ -710,7 +707,6 @@ commit.txt",
 changelog:
   project: main
   section:
-  inherit: all
 #
 # Valid changelog sections:
 #
@@ -748,11 +744,9 @@ changelog:
  - project:
     name: main
     section:
-    inherit: all
  - project:
     name: mkchlog-action
     section:
-    inherit: all
 #
 # Valid changelog sections:
 #
@@ -830,7 +824,6 @@ src/config.rs",
 
 changelog:
   section:
-  inherit: all
 #
 # Valid changelog sections:
 #

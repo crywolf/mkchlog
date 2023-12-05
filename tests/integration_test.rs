@@ -36,7 +36,6 @@ Date:   Tue Oct 24 19:17:09 2023 +0200
 
     changelog:
         section: dev
-        inherit: title
         title-is-enough: true
 
 commit cdbfeb9b2576e07f12da569c54f5ec3cd7b9c0fc
@@ -51,7 +50,6 @@ Date:   Sun Oct 22 23:08:57 2023 +0200
 
     changelog:
         section: features
-        inherit: all
 
 commit 22e27ce785698c4a873eb5e2ad9e0cf9c849be8d
 Author: Martin Habovstiak <martin.habovstiak@gmail.com>
@@ -145,7 +143,6 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     fixes or other things irrelevant to the user of a project.
 
     changelog:
-        inherit: all
         section: features",
     );
 
@@ -259,7 +256,6 @@ Date:   Sun Oct 22 23:08:57 2023 +0200
 
     changelog:
         section: features
-        inherit: all
 
 commit 22e27ce785698c4a873eb5e2ad9e0cf9c849be8d
 Author: Martin Habovstiak <martin.habovstiak@gmail.com>
@@ -290,7 +286,6 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     fixes or other things irrelevant to the user of a project.
 
     changelog:
-        inherit: all
         section: features",
     );
 
@@ -332,7 +327,6 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     fixes or other things irrelevant to the user of a project.
 
     changelog:
-        inherit: all
         section: unconfigured_section",
     );
 
@@ -360,13 +354,13 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     fixes or other things irrelevant to the user of a project.
 
     changelog:
-        inherit: all",
+        title-is-enough: true",
     );
 
     let res = generate_changelog(mocked_log);
     assert!(res.is_err());
     assert!(res.unwrap_err().to_string().starts_with(
-        "changelog: missing field `section` at line 2 column 16 in changelog message in commit:"
+        "changelog: missing field `section` at line 2 column 24 in changelog message in commit:"
     ));
 }
 
@@ -385,8 +379,7 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     fixes or other things irrelevant to the user of a project.
 
     changelog:
-        section:
-        inherit: all",
+        section:",
     );
 
     let res = generate_changelog(mocked_log);
@@ -409,7 +402,6 @@ Date:   Tue Oct 24 19:17:09 2023 +0200
 
     changelog:
         section: dev
-        inherit: title
         title-is-enough: true
 
 commit 62db026b0ead7f0659df10c70e402c70ede5d7dd
@@ -419,7 +411,6 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     Added ability to skip commits.
 
     changelog:
-        inherit: all
         section: features",
     );
 
@@ -455,7 +446,6 @@ Date:   Tue Oct 24 19:17:09 2023 +0200
 
     changelog:
         section: dev
-        inherit: title
         description: This configures github actions to test `mkchlog` as well as run it on
             its own repository.
 
@@ -469,7 +459,6 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     Setup CI
 
     changelog:
-        inherit: all
         section: dev",
     );
 
@@ -548,7 +537,6 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     fixes or other things irrelevant to the user of a project.
 
     changelog:
-        inherit: all
         section: unconfigured_section",
     );
 

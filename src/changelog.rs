@@ -255,7 +255,6 @@ impl CommitChangelog {
             let mut title = changelog.title.as_deref().unwrap_or("");
             let mut description = changelog.description.as_deref().unwrap_or("");
             let title_is_enough = changelog.title_is_enough;
-            let inherit = changelog.inherit.as_deref().unwrap_or("");
 
             let section = changelog.section.as_str();
             let (section, sub_section) = section
@@ -272,7 +271,7 @@ impl CommitChangelog {
             }
 
             let commit_message_description: String;
-            if inherit == "all" || inherit == "title" || (title_is_enough && title.is_empty()) {
+            if title.is_empty() {
                 let re = Regex::new(r"\n\s*\n").expect("should never panic"); // title is separated by an empty line
                 let mut commit_message_iter = re.splitn(&self.commit.message, 2);
 

@@ -71,7 +71,6 @@ at the end of the commit. This is mainly useful for typo
 fixes or other things irrelevant to the user of a project.
 
 changelog:
-    inherit: all
     section: features
 ```
 
@@ -134,7 +133,6 @@ This adds a field `skip-commits-up-to` into top level of yaml config so that use
 
 changelog:
     section: features
-    inherit: all
 ```
 
 ### Example output
@@ -210,7 +208,6 @@ This updates the wasm module to one which was compiled with `--release`.
 changelog:
     project: mkchlog-action
     section: perf
-    inherit: all
 ```
 
 #### Usage
@@ -239,14 +236,14 @@ To use prepared commit message template use the following command:
 
 Commit messages should contain descriptive information about the change.
 However not all of it is suitable to be in the changelog.
-Each commit must be explicitly marked as either skipped or has some basic information filled.
-Commits with `changelog: skip` will obviously not be included in the changelog.
-Commits with `inherit: all` will simply include both title and description of the commit in the changelog.
-This should be used when the commit message and description is equally useful for developers and users.
-`inherit` could also accept additional options like `title` to only copy the title.
-`section` is mandatory and defines in which section the change belongs.
+Each commit must be explicitly marked as either skipped or has some basic information filled. Commits with `changelog: skip` will obviously not be included in the changelog.
 
-`title` and `description` are those intended for the user.
+By default both **title** (first line of the commit message) and **description** (rest of the commit message if present) will be included in the changelog.
+This should be used when the commit message and description is equally useful for developers and users.
+
+`section` is mandatory and defines in which section of the changelog the change belongs.
+
+`title` and `description` fields are those intended for the user and can override the default values extracted from the commit message.
 The fictious "TOCTOU vulnerability fix" commit message above is hopefully a clear example.
 For users it describes how it impacts them while for programmers it explains technical details of the issue.
 `title-is-enough: true` explicitly opts-out of description, intended for situation when additional information is not needed for the user.

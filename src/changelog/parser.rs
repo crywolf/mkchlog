@@ -32,7 +32,8 @@ pub struct Changelog {
     #[serde(rename = "title-is-enough", default)]
     pub title_is_enough: bool,
     pub description: Option<String>,
-    pub inherit: Option<String>,
+    pub inherit: Option<String>, // ignored, only for backwards compatibility
+    #[serde(skip)]
     pub projects: Option<Vec<Project>>,
 }
 
@@ -53,7 +54,6 @@ pub struct Project {
     #[serde(rename = "title-is-enough", default)]
     pub title_is_enough: bool,
     pub description: Option<String>,
-    pub inherit: Option<String>,
 }
 
 impl From<Project> for Changelog {
@@ -65,7 +65,7 @@ impl From<Project> for Changelog {
             title: project.title,
             title_is_enough: project.title_is_enough,
             description: project.description,
-            inherit: project.inherit,
+            inherit: None,
             projects: None,
         }
     }
@@ -183,7 +183,6 @@ mod tests {
         let yaml = "
         project: mkchlog-action
         section: doc
-        inherit: title
         title-is-enough: true";
 
         let expected = Changelog {
@@ -193,7 +192,7 @@ mod tests {
             title: None,
             title_is_enough: true,
             description: None,
-            inherit: Some("title".to_owned()),
+            inherit: None,
             projects: None,
         };
 
@@ -202,7 +201,6 @@ mod tests {
 
         let yaml = "
         section: features
-        inherit: all
         project: mkchlog";
 
         let expected = Changelog {
@@ -212,7 +210,7 @@ mod tests {
             title: None,
             title_is_enough: false,
             description: None,
-            inherit: Some("all".to_owned()),
+            inherit: None,
             projects: None,
         };
 
@@ -221,7 +219,6 @@ mod tests {
 
         let yaml = "
         section: features
-        inherit: all
         project: ";
 
         let expected = Changelog {
@@ -231,7 +228,7 @@ mod tests {
             title: None,
             title_is_enough: false,
             description: None,
-            inherit: Some("all".to_owned()),
+            inherit: None,
             projects: None,
         };
 
@@ -267,7 +264,6 @@ mod tests {
             .starts_with("changelog: unknown field `nonsense`"));
 
         let yaml = "
-        inherit: all
         project: mkchlog";
 
         let res = parse(yaml);
@@ -279,8 +275,7 @@ mod tests {
             .starts_with("changelog: missing field `section`"));
 
         let yaml = "
-        section:
-        inherit: all";
+        section:";
 
         let res = parse(yaml).unwrap();
 
@@ -293,7 +288,6 @@ mod tests {
         - project:
            name: mkchlog
            section: dev
-           inherit: title
            title-is-enough: true
         - project:
            name: mkchlog-action
@@ -315,7 +309,6 @@ mod tests {
                     title: None,
                     title_is_enough: true,
                     description: None,
-                    inherit: Some("title".to_owned()),
                 },
                 Project {
                     skip: true,
@@ -324,7 +317,6 @@ mod tests {
                     title: None,
                     title_is_enough: false,
                     description: None,
-                    inherit: None,
                 },
             ]),
         };

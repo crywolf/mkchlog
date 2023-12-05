@@ -45,7 +45,6 @@ Date:   Sun Oct 25 10:12:50 2023 +0200
     changelog:
         project: mkchlog-action
         section: doc
-        inherit: title
         title-is-enough: true
 
 commit b532ebcb0a214fbc69a5f5138e43eec14ea1a9dc
@@ -57,7 +56,6 @@ Date:   Tue Oct 24 19:17:09 2023 +0200
     changelog:
         project: mkchlog
         section: dev
-        inherit: title
         title-is-enough: true
 
 commit cdbfeb9b2576e07f12da569c54f5ec3cd7b9c0fc
@@ -72,7 +70,6 @@ Date:   Sun Oct 22 23:08:57 2023 +0200
 
     changelog:
         section: features
-        inherit: all
         project: mkchlog
 
 commit ac0df22c6b5c9e4ec387b61b7997d420a1b6d36c
@@ -86,7 +83,6 @@ Date:   Tue Oct 31 13:46:59 2023 +0100
     changelog:
         project: main
         section: features
-        inherit: all
 
 commit 11964cbb5ac05c5a19d75b5bebcc74ebc867e438
 Author: Martin Habovstiak <martin.habovstiak@gmail.com>
@@ -99,7 +95,6 @@ Date:   Sun Oct 22 10:12:50 2023 +0200
     changelog:
         project: mkchlog-action
         section: perf
-        inherit: all
 
 commit 22e27ce785698c4a873eb5e2ad9e0cf9c849be8d
 Author: Martin Habovstiak <martin.habovstiak@gmail.com>
@@ -184,7 +179,6 @@ Date:   Sun Oct 25 10:12:50 2023 +0200
     changelog:
         project: mkchlog-action
         section: doc
-        inherit: title
         title-is-enough: true
 
 commit b532ebcb0a214fbc69a5f5138e43eec14ea1a9dc
@@ -196,7 +190,6 @@ Date:   Tue Oct 24 19:17:09 2023 +0200
     changelog:
         project: mkchlog
         section: dev
-        inherit: title
         title-is-enough: true
 
 commit cdbfeb9b2576e07f12da569c54f5ec3cd7b9c0fc
@@ -211,7 +204,6 @@ Date:   Sun Oct 22 23:08:57 2023 +0200
 
     changelog:
         section: features
-        inherit: all
         project: mkchlog
 
 commit 11964cbb5ac05c5a19d75b5bebcc74ebc867e438
@@ -225,7 +217,6 @@ Date:   Sun Oct 22 10:12:50 2023 +0200
     changelog:
         project: mkchlog-action
         section: perf
-        inherit: all
 
 commit 22e27ce785698c4a873eb5e2ad9e0cf9c849be8d
 Author: Martin Habovstiak <martin.habovstiak@gmail.com>
@@ -304,13 +295,10 @@ Date:   Tue Oct 24 19:17:09 2023 +0200
      - project:
         name: mkchlog
         section: dev
-        inherit: all
         title-is-enough: true
      - project:
         name: mkchlog-action
-        section: features
-        inherit: all
-",
+        section: features",
     );
 
     let project = Some("mkchlog".to_owned());
@@ -362,7 +350,6 @@ Date:   Tue Oct 24 19:17:09 2023 +0200
      - project:
         name: mkchlog
         section: dev
-        inherit: title
         title-is-enough: true
      - project:
         name: mkchlog-action
@@ -427,7 +414,6 @@ Date:   Sun Oct 25 10:12:50 2023 +0200
     changelog:
         project: wrong-name
         section: doc
-        inherit: title
         title-is-enough: true",
     );
 
@@ -456,7 +442,6 @@ Date:   Sun Oct 25 10:12:50 2023 +0200
     changelog:
         project: mkchlog-action
         section: doc
-        inherit: title
         title-is-enough: true
 
 commit b532ebcb0a214fbc69a5f5138e43eec14ea1a9dc
@@ -468,7 +453,6 @@ Date:   Tue Oct 24 19:17:09 2023 +0200
     changelog:
         project: mkchlog
         section: dev
-        inherit: title
         title-is-enough: true
 
 commit cdbfeb9b2576e07f12da569c54f5ec3cd7b9c0fc
@@ -483,7 +467,6 @@ Date:   Sun Oct 22 23:08:57 2023 +0200
 
     changelog:
         section: features
-        inherit: all
         project: mkchlog
 
 commit 11964cbb5ac05c5a19d75b5bebcc74ebc867e438
@@ -497,7 +480,6 @@ Date:   Sun Oct 22 10:12:50 2023 +0200
     changelog:
         project: mkchlog-action
         section: perf
-        inherit: all
 
 commit 22e27ce785698c4a873eb5e2ad9e0cf9c849be8d
 Author: Martin Habovstiak <martin.habovstiak@gmail.com>
@@ -580,7 +562,6 @@ Date:   Sun Oct 25 10:12:50 2023 +0200
     changelog:
         project: mkchlog-action
         section: doc
-        inherit: title
         title-is-enough: true
 
 commit b532ebcb0a214fbc69a5f5138e43eec14ea1a9dc
@@ -592,7 +573,6 @@ Date:   Tue Oct 24 19:17:09 2023 +0200
     changelog:
         project: mkchlog
         section: dev
-        inherit: title
         title-is-enough: true
 
 commit cdbfeb9b2576e07f12da569c54f5ec3cd7b9c0fc
@@ -607,7 +587,6 @@ Date:   Sun Oct 22 23:08:57 2023 +0200
 
     changelog:
         section: features
-        inherit: all
         project: mkchlog
 
 commit 11964cbb5ac05c5a19d75b5bebcc74ebc867e438
@@ -621,7 +600,6 @@ Date:   Sun Oct 22 10:12:50 2023 +0200
     changelog:
         project: mkchlog-action
         section: perf
-        inherit: all
 
 commit 22e27ce785698c4a873eb5e2ad9e0cf9c849be8d
 Author: Martin Habovstiak <martin.habovstiak@gmail.com>
@@ -700,7 +678,6 @@ Date:   Tue Jun 13 16:24:22 2023 +0200
     fixes or other things irrelevant to the user of a project.
 
     changelog:
-        inherit: all
         section: feature",
     );
 
