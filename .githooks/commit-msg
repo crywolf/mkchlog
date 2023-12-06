@@ -1,6 +1,7 @@
 #!/bin/sh
-if ! cat "$1" | grep -v '^#' | cargo run -- --from-stdin check ; then
-  >&2 echo "Please follow mkchlog rules"
+COMMIT_MSG_FILE=$1
+
+if ! cat "$COMMIT_MSG_FILE" | grep -v '^#' | cargo run -- --from-stdin check ; then
+  >&2 echo "---> Please follow mkchlog rules"
   exit 1
 fi
-

@@ -18,6 +18,8 @@ sections:
         title: Breaking changes
     perf:
         title: Performance improvements
+    doc:
+        title: Documentation changes
     dev:
         title: Development
         description: Internal development changes

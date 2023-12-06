@@ -1,8 +1,19 @@
 skip-commits-up-to: bc58e6bf2cf640d46aa832e297d0f215f76dfce0
 
-skip-commits-list:
-    - 12b6a464d165c18cc29394e332d6f6c6d09170e2
-    - a27c77b683c6334e79e94c232ed699f5a5216fee
+projects:
+  list:
+    - project:
+        name: main
+        dirs: [".", .github, .githooks]
+    - project:
+        name: mkchlog
+        dirs: [mkchlog]
+    - project:
+        name: mkchlog-action
+        dirs: [mkchlog-action]
+
+  since-commit: 11964cbb5ac05c5a19d75b5bebcc74ebc867e438 # projects are mandatory since COMMIT_NUMBER
+  default: mkchlog # commits up to COMMIT_NUMBER are considered belonging to the project NAME
 
 sections:
     # section identifier selected by project maintainer
@@ -22,6 +33,8 @@ sections:
         title: Breaking changes
     perf:
         title: Performance improvements
+    doc:
+        title: Documentation changes
     dev:
         title: Development
         description: Internal development changes

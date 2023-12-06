@@ -1,0 +1,14 @@
+#
+# Fill in correct 'section' from the provided list of valid sections above.
+#
+# First line of the commit message serves as a title in the changelog
+# and thus should be very short.
+#
+# After an empty line you can add multi-line description of commit,
+# feel free to be detailed.
+#
+# If you do not want to include your commit message into the changelog,
+# simply use 'changelog: skip' and remove or comment out the rest of the changelog: part.
+#
+# For more information how to use the tool, see README.md
+#
