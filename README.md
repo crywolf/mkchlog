@@ -174,6 +174,8 @@ Internal development changes
 * Setup Github Actions
 ```
 
+[Detailed examples](EXAMPLES.md)
+
 ## Multi-project setup
 
 Some repositories host multiple projects that are related but should have disjoint changelogs. This is typical for multi-crate workspacess in Rust.
