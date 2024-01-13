@@ -47,6 +47,36 @@ pub fn run(config: config::Config) -> Result<(), Box<dyn std::error::Error>> {
         (None, None) => std::path::PathBuf::from("./"),
     };
 
+    if config.command == Command::CommitTemplate {
+        let output = template.generate_commit_template(std::io::stdin().lock())?;
+        println!("{}", output);
+        return Ok(());
+    }
+
+    match (
+        &config.project,
+        &template.settings.projects_settings.projects,
+    ) {
+        (None, projects) => {
+            if !projects.is_empty() && config.command == Command::Generate {
+                // 'project' arg can be empty when we are just checking the commits, not generating a changelog
+                return Err(
+                    "You need to specify project name. Use command 'help' for more information."
+                        .into(),
+                );
+            }
+        }
+        (Some(proj), projects) => {
+            if projects.is_empty() {
+                return Err(format!(
+                    "Omit project option '{}', repository is not configured as multi-project.",
+                    proj
+                )
+                .into());
+            }
+        }
+    }
+
     let git = if config.read_from_stdin {
         use git::stdin::Stdin;
         let git_cmd = Box::new(Stdin::new());
@@ -57,12 +87,8 @@ pub fn run(config: config::Config) -> Result<(), Box<dyn std::error::Error>> {
     };
 
     let mut changelog = Changelog::new(&mut template, git);
-
-    let output = changelog.generate()?;
-
-    if let Command::Generate = config.command {
-        println!("{}", output);
-    }
+    let output = changelog.generate(config.project, config.command)?;
+    println!("{}", output);
 
     Ok(())
 }

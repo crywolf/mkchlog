@@ -19,6 +19,7 @@ pub fn check(config: &str, git_callback: js_sys::Function) -> Result<(), JsValue
 fn run(config: &str, git_callback: js_sys::Function) -> Result<(), Box<dyn std::error::Error>> {
     use mkchlog::changelog::Changelog;
     use mkchlog::changelog::Changes;
+    use mkchlog::config::Command;
     use mkchlog::template::Template;
 
     let mut template = Template::<Changes>::from_str(config)?;
@@ -32,7 +33,7 @@ fn run(config: &str, git_callback: js_sys::Function) -> Result<(), Box<dyn std::
 
     let mut changelog = Changelog::new(&mut template, git);
 
-    changelog.generate()?;
+    changelog.generate(None, Command::Check)?;
     Ok(())
 }
 
